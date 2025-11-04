@@ -29,7 +29,7 @@
 
 package io.github.lee0701.mozc.custom.accessibility;
 
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidates.CandidateWord;
+import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidateWindow.CandidateWord;
 import io.github.lee0701.mozc.custom.ui.CandidateLayout;
 import io.github.lee0701.mozc.custom.ui.CandidateLayout.Row;
 import io.github.lee0701.mozc.custom.ui.CandidateLayout.Span;

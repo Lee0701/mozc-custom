@@ -29,7 +29,7 @@
 
 package io.github.lee0701.mozc.custom.ui;
 
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidates.CandidateList;
+import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidateWindow.CandidateList;
 import com.google.common.base.Optional;
 
 /**

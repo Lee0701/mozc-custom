@@ -34,8 +34,8 @@ import io.github.lee0701.mozc.custom.accessibility.CandidateWindowAccessibilityD
 import io.github.lee0701.mozc.custom.emoji.EmojiProviderType;
 import io.github.lee0701.mozc.custom.keyboard.BackgroundDrawableFactory;
 import io.github.lee0701.mozc.custom.keyboard.BackgroundDrawableFactory.DrawableType;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidates.CandidateList;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidates.CandidateWord;
+import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidateWindow.CandidateList;
+import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidateWindow.CandidateWord;
 import io.github.lee0701.mozc.custom.ui.CandidateLayout;
 import io.github.lee0701.mozc.custom.ui.CandidateLayout.Row;
 import io.github.lee0701.mozc.custom.ui.CandidateLayout.Span;

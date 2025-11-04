@@ -31,6 +31,8 @@ package org.mozc.android.inputmethod.japanese.session;
 
 import io.github.lee0701.mozc.custom.MozcLog;
 import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Command;
+
+import com.google.android.apps.inputmethod.libs.mozc.session.MozcJNI;
 import com.google.common.base.Preconditions;
 import com.google.protobuf.InvalidProtocolBufferException;
 
@@ -39,6 +41,10 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -49,6 +55,9 @@ import java.util.regex.Pattern;
 class LocalSessionHandler implements SessionHandler {
 
   private static final String USER_PROFILE_DIRECTORY_NAME = ".mozc";
+  // Built using:
+  // bazelisk build --config oss_linux data_manager/oss:mozc_dataset_for_oss
+  private static final String DATA_FILE_NAME = "mozc.data";
 
   @Override
   public void initialize(Context context) {
@@ -77,8 +86,24 @@ class LocalSessionHandler implements SessionHandler {
         throw new RuntimeException("Invalid version name: " + versionName);
       }
 
+      File cachedDataPath = new File(context.getCacheDir(), DATA_FILE_NAME);
+      if(!cachedDataPath.exists()) {
+        try {
+          InputStream is = context.getAssets().open(DATA_FILE_NAME);
+          int size = is.available();
+          byte[] buffer = new byte[size];
+          is.read(buffer);
+          is.close();
+          OutputStream os = new FileOutputStream(cachedDataPath);
+          os.write(buffer);
+          os.close();
+        } catch (IOException e) {
+          throw new RuntimeException("Cannot copy Mozc data file to: " + cachedDataPath.getAbsolutePath());
+        }
+      }
+
       // Load the shared object.
-      MozcJNI.load(userProfileDirectory.getAbsolutePath(), null, matcher.group(1));
+      MozcJNI.load(userProfileDirectory.getAbsolutePath(), cachedDataPath.getAbsolutePath(), matcher.group(1));
     } catch (NameNotFoundException e) {
       throw new RuntimeException(e);
     }
