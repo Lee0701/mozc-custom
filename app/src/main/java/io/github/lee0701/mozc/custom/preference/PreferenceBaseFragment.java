@@ -29,72 +29,72 @@
 
 package io.github.lee0701.mozc.custom.preference;
 
-import io.github.lee0701.mozc.custom.MozcLog;
-import io.github.lee0701.mozc.custom.MozcUtil;
-import io.github.lee0701.mozc.custom.R;
-
 import android.os.Bundle;
 import android.preference.PreferenceFragment;
 
 import java.util.List;
 
+import io.github.lee0701.mozc.custom.MozcLog;
+import io.github.lee0701.mozc.custom.MozcUtil;
+import io.github.lee0701.mozc.custom.R;
+
 /**
  * A PreferenceFragment for each {@link PreferencePage}.
- *
+ * <p>
  * A referenceBaseFragment instance corresponds to a &lt;header&gt;(in prefernce header xml).
  *
  */
 public class PreferenceBaseFragment extends PreferenceFragment {
-  @Override
-  public void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    String preferencePageName = getPrefrerencePageName(getArguments());
-    PreferencePage preferencePage = toPreferencePage(preferencePageName);
-    addPreferences(
-        PreferencePage.getResourceIdList(
-            preferencePage,
-            MozcUtil.isDebug(getActivity()),
-            getResources().getBoolean(R.bool.sending_information_features_enabled)));
-  }
-
-  void addPreferences(List<Integer> resourceIds) {
-    for (int resourceId : resourceIds) {
-      addPreferencesFromResource(resourceId);
-    }
-    PreferenceUtil.initializeSpecialPreferences(getPreferenceManager());
-  }
-
-  /**
-   * Does same thing as {@link PreferencePage#valueOf}, but also handles errors.
-   * Returns FLAT if an error is found.
-   */
-  static PreferencePage toPreferencePage(String preferencePageName) {
-    if (preferencePageName == null) {
-      // No preference page name is given.
-      MozcLog.e("preferencePageName is not set.");
-      return PreferencePage.FLAT;
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        String preferencePageName = getPrefrerencePageName(getArguments());
+        PreferencePage preferencePage = toPreferencePage(preferencePageName);
+        addPreferences(
+                PreferencePage.getResourceIdList(
+                        preferencePage,
+                        MozcUtil.isDebug(getActivity()),
+                        getResources().getBoolean(R.bool.sending_information_features_enabled)));
     }
 
-    try {
-      return PreferencePage.valueOf(preferencePageName);
-    } catch (IllegalArgumentException e) {
-      MozcLog.e("value '" + preferencePageName + "' is not defined.");
+    void addPreferences(List<Integer> resourceIds) {
+        for (int resourceId : resourceIds) {
+            addPreferencesFromResource(resourceId);
+        }
+        PreferenceUtil.initializeSpecialPreferences(getPreferenceManager());
     }
 
-    // Returns FLAT by default.
-    return PreferencePage.FLAT;
-  }
+    /**
+     * Does same thing as {@link PreferencePage#valueOf}, but also handles errors.
+     * Returns FLAT if an error is found.
+     */
+    static PreferencePage toPreferencePage(String preferencePageName) {
+        if (preferencePageName == null) {
+            // No preference page name is given.
+            MozcLog.e("preferencePageName is not set.");
+            return PreferencePage.FLAT;
+        }
 
-  /**
-   * Returns {@link PreferencePage}'s name which corresponds to the instance
-   * based on {@code bundle}.
-   *
-   * Typically {@code bundle} is set in preference header xml.
-   */
-  static String getPrefrerencePageName(Bundle bundle) {
-    if (bundle == null) {
-      return null;
+        try {
+            return PreferencePage.valueOf(preferencePageName);
+        } catch (IllegalArgumentException e) {
+            MozcLog.e("value '" + preferencePageName + "' is not defined.");
+        }
+
+        // Returns FLAT by default.
+        return PreferencePage.FLAT;
     }
-    return bundle.getString(PreferencePage.EXTRA_ARGUMENT_PREFERENCE_PAGE_NAME);
-  }
+
+    /**
+     * Returns {@link PreferencePage}'s name which corresponds to the instance
+     * based on {@code bundle}.
+     * <p>
+     * Typically {@code bundle} is set in preference header xml.
+     */
+    static String getPrefrerencePageName(Bundle bundle) {
+        if (bundle == null) {
+            return null;
+        }
+        return bundle.getString(PreferencePage.EXTRA_ARGUMENT_PREFERENCE_PAGE_NAME);
+    }
 }

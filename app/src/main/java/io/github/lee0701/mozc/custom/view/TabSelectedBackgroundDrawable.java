@@ -38,24 +38,24 @@ import android.graphics.Rect;
  *
  */
 public class TabSelectedBackgroundDrawable extends BaseBackgroundDrawable {
-  private final int highlightHeight;
-  private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final int highlightHeight;
+    private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
-  public TabSelectedBackgroundDrawable(int highlightHeight, int highlightColor) {
-    // No padding.
-    super(0, 0, 0, 0);
-    this.highlightHeight = highlightHeight;
-    paint.setColor(highlightColor);
-  }
-
-  @Override
-  public void draw(Canvas canvas) {
-    if (isCanvasRectEmpty()) {
-      return;
+    public TabSelectedBackgroundDrawable(int highlightHeight, int highlightColor) {
+        // No padding.
+        super(0, 0, 0, 0);
+        this.highlightHeight = highlightHeight;
+        paint.setColor(highlightColor);
     }
 
-    // Paint the rectangle.
-    Rect bounds = getBounds();
-    canvas.drawRect(0, bounds.bottom - highlightHeight, bounds.right, bounds.bottom, paint);
-  }
+    @Override
+    public void draw(Canvas canvas) {
+        if (isCanvasRectEmpty()) {
+            return;
+        }
+
+        // Paint the rectangle.
+        Rect bounds = getBounds();
+        canvas.drawRect(0, bounds.bottom - highlightHeight, bounds.right, bounds.bottom, paint);
+    }
 }

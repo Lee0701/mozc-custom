@@ -45,7 +45,7 @@ import androidx.annotation.Nullable;
 
 /**
  * The proxy of the {@code InputConnection} with tracking the composing text.
- *
+ * <p>
  * There is no interface to extract the current composing text from {@code InputConnection}.
  * So, instead, we track all the message to {@code InputConnection} and keep the current composing
  * text as fall back. Note that the kept composing text might be different from the composing text
@@ -55,172 +55,172 @@ import androidx.annotation.Nullable;
  */
 public class ComposingTextTrackingInputConnection implements InputConnection {
 
-  private final InputConnection baseConnection;
-  private String composingText = "";
+    private final InputConnection baseConnection;
+    private String composingText = "";
 
-  public ComposingTextTrackingInputConnection(InputConnection baseConnection) {
-    if (baseConnection == null) {
-      throw new NullPointerException();
+    public ComposingTextTrackingInputConnection(InputConnection baseConnection) {
+        if (baseConnection == null) {
+            throw new NullPointerException();
+        }
+        this.baseConnection = baseConnection;
     }
-    this.baseConnection = baseConnection;
-  }
 
-  public String getComposingText() {
-    return composingText;
-  }
-
-  @Override
-  public boolean beginBatchEdit() {
-    return baseConnection.beginBatchEdit();
-  }
-
-  @Override
-  public boolean clearMetaKeyStates(int states) {
-    return baseConnection.clearMetaKeyStates(states);
-  }
-
-  @Override
-  public boolean commitCompletion(CompletionInfo text) {
-    return baseConnection.commitCompletion(text);
-  }
-
-  @Override
-  public boolean commitCorrection(CorrectionInfo correctionInfo) {
-    return baseConnection.commitCorrection(correctionInfo);
-  }
-
-  @Override
-  public boolean commitText(CharSequence text, int newCursorPosition) {
-    return baseConnection.commitText(text, newCursorPosition);
-  }
-
-  @Override
-  public boolean deleteSurroundingText(int beforeLength, int afterLength) {
-    return baseConnection.deleteSurroundingText(beforeLength, afterLength);
-  }
-
-  @Override
-  public boolean endBatchEdit() {
-    return baseConnection.endBatchEdit();
-  }
-
-  @Override
-  public boolean finishComposingText() {
-    composingText = "";
-    return baseConnection.finishComposingText();
-  }
-
-  @Override
-  public int getCursorCapsMode(int reqModes) {
-    return baseConnection.getCursorCapsMode(reqModes);
-  }
-
-  @Override
-  public ExtractedText getExtractedText(ExtractedTextRequest request, int flags) {
-    return baseConnection.getExtractedText(request, flags);
-  }
-
-  @Override
-  public CharSequence getSelectedText(int flags) {
-    return baseConnection.getSelectedText(flags);
-  }
-
-  @Override
-  public CharSequence getTextAfterCursor(int n, int flags) {
-    return baseConnection.getTextAfterCursor(n, flags);
-  }
-
-  @Override
-  public CharSequence getTextBeforeCursor(int n, int flags) {
-    return baseConnection.getTextBeforeCursor(n, flags);
-  }
-
-  @Override
-  public boolean performContextMenuAction(int id) {
-    return baseConnection.performContextMenuAction(id);
-  }
-
-  @Override
-  public boolean performEditorAction(int editorAction) {
-    return baseConnection.performEditorAction(editorAction);
-  }
-
-  @Override
-  public boolean performPrivateCommand(String action, Bundle data) {
-    return baseConnection.performPrivateCommand(action, data);
-  }
-
-  @Override
-  public boolean reportFullscreenMode(boolean enabled) {
-    return baseConnection.reportFullscreenMode(enabled);
-  }
-
-  @Override
-  public boolean sendKeyEvent(KeyEvent event) {
-    return baseConnection.sendKeyEvent(event);
-  }
-
-  @Override
-  public boolean setComposingRegion(int start, int end) {
-    // Note: This method is introduced since API level 9. Mozc supports API level 7,
-    // so we don't need to track the composing text by the invocation of this method.
-    return baseConnection.setComposingRegion(start, end);
-  }
-
-  @Override
-  public boolean setComposingText(CharSequence text, int newCursorPosition) {
-    composingText = text == null ? "" : text.toString();
-    return baseConnection.setComposingText(text, newCursorPosition);
-  }
-
-  @Override
-  public boolean setSelection(int start, int end) {
-    return baseConnection.setSelection(start, end);
-  }
-
-  @Override
-  public boolean deleteSurroundingTextInCodePoints(int i, int i1) {
-    return false;
-  }
-
-  @Override
-  public Handler getHandler() {
-    return null;
-  }
-
-  @Override
-  public void closeConnection() {
-
-  }
-
-  @Override
-  public boolean commitContent(@NonNull InputContentInfo inputContentInfo, int i, @Nullable Bundle bundle) {
-    return false;
-  }
-
-  /**
-   * Returns the instance of ComposingTextTrackingInputConnection based on the given baseConnection.
-   * This method will return:
-   * - {@code null}, if the given connection is {@code null}.
-   * - the given connection instance as is, if it is the instance of
-   *   ComposingTextTrackingInputConnection.
-   * - the new instance of ComposingTextTrackingInputConnection wrapping baseConnection, otherwise.
-   */
-  public static ComposingTextTrackingInputConnection newInstance(InputConnection baseConnection) {
-    if (baseConnection == null) {
-      return null;
+    public String getComposingText() {
+        return composingText;
     }
-    if (baseConnection instanceof ComposingTextTrackingInputConnection) {
-      // The InputConnection is already wrapped by ComposingTextTrackingInputConnection,
-      // so we don't need to re-wrap it.
-      return ComposingTextTrackingInputConnection.class.cast(baseConnection);
-    }
-    return new ComposingTextTrackingInputConnection(baseConnection);
-  }
 
-  @TargetApi(21)
-  @Override
-  public boolean requestCursorUpdates(int cursorUpdateMode) {
-    return baseConnection.requestCursorUpdates(cursorUpdateMode);
-  }
+    @Override
+    public boolean beginBatchEdit() {
+        return baseConnection.beginBatchEdit();
+    }
+
+    @Override
+    public boolean clearMetaKeyStates(int states) {
+        return baseConnection.clearMetaKeyStates(states);
+    }
+
+    @Override
+    public boolean commitCompletion(CompletionInfo text) {
+        return baseConnection.commitCompletion(text);
+    }
+
+    @Override
+    public boolean commitCorrection(CorrectionInfo correctionInfo) {
+        return baseConnection.commitCorrection(correctionInfo);
+    }
+
+    @Override
+    public boolean commitText(CharSequence text, int newCursorPosition) {
+        return baseConnection.commitText(text, newCursorPosition);
+    }
+
+    @Override
+    public boolean deleteSurroundingText(int beforeLength, int afterLength) {
+        return baseConnection.deleteSurroundingText(beforeLength, afterLength);
+    }
+
+    @Override
+    public boolean endBatchEdit() {
+        return baseConnection.endBatchEdit();
+    }
+
+    @Override
+    public boolean finishComposingText() {
+        composingText = "";
+        return baseConnection.finishComposingText();
+    }
+
+    @Override
+    public int getCursorCapsMode(int reqModes) {
+        return baseConnection.getCursorCapsMode(reqModes);
+    }
+
+    @Override
+    public ExtractedText getExtractedText(ExtractedTextRequest request, int flags) {
+        return baseConnection.getExtractedText(request, flags);
+    }
+
+    @Override
+    public CharSequence getSelectedText(int flags) {
+        return baseConnection.getSelectedText(flags);
+    }
+
+    @Override
+    public CharSequence getTextAfterCursor(int n, int flags) {
+        return baseConnection.getTextAfterCursor(n, flags);
+    }
+
+    @Override
+    public CharSequence getTextBeforeCursor(int n, int flags) {
+        return baseConnection.getTextBeforeCursor(n, flags);
+    }
+
+    @Override
+    public boolean performContextMenuAction(int id) {
+        return baseConnection.performContextMenuAction(id);
+    }
+
+    @Override
+    public boolean performEditorAction(int editorAction) {
+        return baseConnection.performEditorAction(editorAction);
+    }
+
+    @Override
+    public boolean performPrivateCommand(String action, Bundle data) {
+        return baseConnection.performPrivateCommand(action, data);
+    }
+
+    @Override
+    public boolean reportFullscreenMode(boolean enabled) {
+        return baseConnection.reportFullscreenMode(enabled);
+    }
+
+    @Override
+    public boolean sendKeyEvent(KeyEvent event) {
+        return baseConnection.sendKeyEvent(event);
+    }
+
+    @Override
+    public boolean setComposingRegion(int start, int end) {
+        // Note: This method is introduced since API level 9. Mozc supports API level 7,
+        // so we don't need to track the composing text by the invocation of this method.
+        return baseConnection.setComposingRegion(start, end);
+    }
+
+    @Override
+    public boolean setComposingText(CharSequence text, int newCursorPosition) {
+        composingText = text == null ? "" : text.toString();
+        return baseConnection.setComposingText(text, newCursorPosition);
+    }
+
+    @Override
+    public boolean setSelection(int start, int end) {
+        return baseConnection.setSelection(start, end);
+    }
+
+    @Override
+    public boolean deleteSurroundingTextInCodePoints(int i, int i1) {
+        return false;
+    }
+
+    @Override
+    public Handler getHandler() {
+        return null;
+    }
+
+    @Override
+    public void closeConnection() {
+
+    }
+
+    @Override
+    public boolean commitContent(@NonNull InputContentInfo inputContentInfo, int i, @Nullable Bundle bundle) {
+        return false;
+    }
+
+    /**
+     * Returns the instance of ComposingTextTrackingInputConnection based on the given baseConnection.
+     * This method will return:
+     * - {@code null}, if the given connection is {@code null}.
+     * - the given connection instance as is, if it is the instance of
+     * ComposingTextTrackingInputConnection.
+     * - the new instance of ComposingTextTrackingInputConnection wrapping baseConnection, otherwise.
+     */
+    public static ComposingTextTrackingInputConnection newInstance(InputConnection baseConnection) {
+        if (baseConnection == null) {
+            return null;
+        }
+        if (baseConnection instanceof ComposingTextTrackingInputConnection) {
+            // The InputConnection is already wrapped by ComposingTextTrackingInputConnection,
+            // so we don't need to re-wrap it.
+            return (ComposingTextTrackingInputConnection) baseConnection;
+        }
+        return new ComposingTextTrackingInputConnection(baseConnection);
+    }
+
+    @TargetApi(21)
+    @Override
+    public boolean requestCursorUpdates(int cursorUpdateMode) {
+        return baseConnection.requestCursorUpdates(cursorUpdateMode);
+    }
 }

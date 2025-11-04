@@ -29,20 +29,22 @@
 
 package io.github.lee0701.mozc.custom.ui;
 
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidateWindow.CandidateList;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidateWindow.CandidateWord;
-import io.github.lee0701.mozc.custom.ui.CandidateLayout.Row;
-import io.github.lee0701.mozc.custom.ui.CandidateLayout.Span;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
+
+import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidateWindow.CandidateList;
+import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidateWindow.CandidateWord;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
+import io.github.lee0701.mozc.custom.ui.CandidateLayout.Row;
+import io.github.lee0701.mozc.custom.ui.CandidateLayout.Span;
+
 /**
  * Layouts the symbol candidate words.
- *
+ * <p>
  * This is a table-like layout, which can be scrollable vertically.
  * The client can set the minimum column width and the row height.
  * The number of columns is calculated based on the given minimum column width
@@ -51,123 +53,135 @@ import java.util.ListIterator;
  */
 public class SymbolCandidateLayouter implements CandidateLayouter {
 
-  private Optional<SpanFactory> spanFactory = Optional.absent();
+    private Optional<SpanFactory> spanFactory = Optional.absent();
 
-  /** The minimum width for each column. */
-  private float minColumnWidth;
+    /**
+     * The minimum width for each column.
+     */
+    private float minColumnWidth;
 
-  /** The number of rows in a page. */
-  private int rowHeight;
+    /**
+     * The number of rows in a page.
+     */
+    private int rowHeight;
 
-  /** The current view's width. */
-  private int viewWidth;
+    /**
+     * The current view's width.
+     */
+    private int viewWidth;
 
-  public void setMinColumnWidth(float minColumnWidth) {
-    this.minColumnWidth = minColumnWidth;
-  }
-
-  public void setRowHeight(int rowHeight) {
-    this.rowHeight = rowHeight;
-  }
-
-  @Override
-  public boolean setViewSize(int width, int height) {
-    // Ignore the height.
-    if (viewWidth == width) {
-      return false;
+    public void setMinColumnWidth(float minColumnWidth) {
+        this.minColumnWidth = minColumnWidth;
     }
 
-    viewWidth = width;
-    return true;
-  }
-
-  @Override
-  public int getPageWidth() {
-    return viewWidth;
-  }
-
-  @Override
-  public int getPageHeight() {
-    return rowHeight;
-  }
-
-  @Override
-  public Optional<CandidateLayout> layout(CandidateList candidateList) {
-    Preconditions.checkNotNull(candidateList);
-    if (viewWidth <= 0 || rowHeight <= 0 || minColumnWidth <= 0 ||
-        candidateList == null || candidateList.getCandidatesCount() == 0 ||
-        !spanFactory.isPresent()) {
-      return Optional.absent();
+    public void setRowHeight(int rowHeight) {
+        this.rowHeight = rowHeight;
     }
 
-    int numColumns = getNumColumns(viewWidth, minColumnWidth);
-    List<Row> rowList = buildRowList(candidateList, spanFactory.get(), numColumns);
-    for (Row row : rowList) {
-      layoutSpanList(row.getSpanList(), viewWidth, numColumns);
+    @Override
+    public boolean setViewSize(int width, int height) {
+        // Ignore the height.
+        if (viewWidth == width) {
+            return false;
+        }
+
+        viewWidth = width;
+        return true;
     }
-    layoutRowList(rowList, rowHeight);
-    return Optional.of(new CandidateLayout(rowList, viewWidth, rowHeight * rowList.size()));
-  }
 
-  private static int getNumColumns(int viewWidth, float minColumnWidth) {
-    // Ensure at least one column.
-    return Math.max((int) (viewWidth / minColumnWidth), 1);
-  }
-
-  /** Builds a list of {@code Row}s from candidate word list. */
-  static List<Row> buildRowList(
-      CandidateList candidateList, SpanFactory spanFactory, int numColumns) {
-    Preconditions.checkNotNull(candidateList);
-    Preconditions.checkNotNull(spanFactory);
-
-    List<Row> rowList = new ArrayList<Row>(
-        (candidateList.getCandidatesCount() + numColumns - 1) / numColumns);
-    int columnIndex = 0;
-    Row row = null;
-    for (CandidateWord candidateWord : candidateList.getCandidatesList()) {
-      if (columnIndex == 0) {
-        row = new Row();
-        rowList.add(row);
-      }
-
-      row.addSpan(spanFactory.newInstance(candidateWord));
-      columnIndex = (columnIndex + 1) % numColumns;
+    @Override
+    public int getPageWidth() {
+        return viewWidth;
     }
-    return rowList;
-  }
 
-  /** Sets the left and right position to all spans. */
-  static void layoutSpanList(List<Span> spanList, int viewWidth, int numColumns) {
-    Preconditions.checkNotNull(spanList);
-    float left = 0;
-    for (ListIterator<Span> iter = spanList.listIterator(); iter.hasNext(); ) {
-      Span span = iter.next();
-      // To avoid fp error at the end of the span list, we use the following expression.
-      float right = viewWidth * iter.nextIndex() / (float) numColumns;
-      span.setLeft(left);
-      span.setRight(right);
-      left = right;
+    @Override
+    public int getPageHeight() {
+        return rowHeight;
     }
-  }
 
-  /** Sets the top, height and width to all rows. */
-  static void layoutRowList(List<Row> rowList, int rowHeight) {
-    Preconditions.checkNotNull(rowList);
-    // The pageHeight will be divided evenly to the each row.
-    for (ListIterator<Row> iter = rowList.listIterator(); iter.hasNext(); ) {
-      int index = iter.nextIndex();
-      Row row = iter.next();
-      row.setTop(rowHeight * index);
-      row.setHeight(rowHeight);
-      List<Span> spanList = row.getSpanList();
-      row.setWidth(spanList.isEmpty() ? 0 : spanList.get(spanList.size() - 1).getRight());
+    @Override
+    public Optional<CandidateLayout> layout(CandidateList candidateList) {
+        Preconditions.checkNotNull(candidateList);
+        if (viewWidth <= 0 || rowHeight <= 0 || minColumnWidth <= 0 ||
+                candidateList == null || candidateList.getCandidatesCount() == 0 ||
+                !spanFactory.isPresent()) {
+            return Optional.absent();
+        }
+
+        int numColumns = getNumColumns(viewWidth, minColumnWidth);
+        List<Row> rowList = buildRowList(candidateList, spanFactory.get(), numColumns);
+        for (Row row : rowList) {
+            layoutSpanList(row.getSpanList(), viewWidth, numColumns);
+        }
+        layoutRowList(rowList, rowHeight);
+        return Optional.of(new CandidateLayout(rowList, viewWidth, rowHeight * rowList.size()));
     }
-  }
 
-  /**
-   * @param spanFactory the spanFactory to set
-   */
-  public void setSpanFactory(SpanFactory spanFactory) {
-    this.spanFactory =  Optional.of(Preconditions.checkNotNull(spanFactory));
-  }
+    private static int getNumColumns(int viewWidth, float minColumnWidth) {
+        // Ensure at least one column.
+        return Math.max((int) (viewWidth / minColumnWidth), 1);
+    }
+
+    /**
+     * Builds a list of {@code Row}s from candidate word list.
+     */
+    static List<Row> buildRowList(
+            CandidateList candidateList, SpanFactory spanFactory, int numColumns) {
+        Preconditions.checkNotNull(candidateList);
+        Preconditions.checkNotNull(spanFactory);
+
+        List<Row> rowList = new ArrayList<Row>(
+                (candidateList.getCandidatesCount() + numColumns - 1) / numColumns);
+        int columnIndex = 0;
+        Row row = null;
+        for (CandidateWord candidateWord : candidateList.getCandidatesList()) {
+            if (columnIndex == 0) {
+                row = new Row();
+                rowList.add(row);
+            }
+
+            row.addSpan(spanFactory.newInstance(candidateWord));
+            columnIndex = (columnIndex + 1) % numColumns;
+        }
+        return rowList;
+    }
+
+    /**
+     * Sets the left and right position to all spans.
+     */
+    static void layoutSpanList(List<Span> spanList, int viewWidth, int numColumns) {
+        Preconditions.checkNotNull(spanList);
+        float left = 0;
+        for (ListIterator<Span> iter = spanList.listIterator(); iter.hasNext(); ) {
+            Span span = iter.next();
+            // To avoid fp error at the end of the span list, we use the following expression.
+            float right = viewWidth * iter.nextIndex() / (float) numColumns;
+            span.setLeft(left);
+            span.setRight(right);
+            left = right;
+        }
+    }
+
+    /**
+     * Sets the top, height and width to all rows.
+     */
+    static void layoutRowList(List<Row> rowList, int rowHeight) {
+        Preconditions.checkNotNull(rowList);
+        // The pageHeight will be divided evenly to the each row.
+        for (ListIterator<Row> iter = rowList.listIterator(); iter.hasNext(); ) {
+            int index = iter.nextIndex();
+            Row row = iter.next();
+            row.setTop(rowHeight * index);
+            row.setHeight(rowHeight);
+            List<Span> spanList = row.getSpanList();
+            row.setWidth(spanList.isEmpty() ? 0 : spanList.get(spanList.size() - 1).getRight());
+        }
+    }
+
+    /**
+     * @param spanFactory the spanFactory to set
+     */
+    public void setSpanFactory(SpanFactory spanFactory) {
+        this.spanFactory = Optional.of(Preconditions.checkNotNull(spanFactory));
+    }
 }

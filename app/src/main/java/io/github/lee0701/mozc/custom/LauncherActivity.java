@@ -29,10 +29,10 @@
 
 package io.github.lee0701.mozc.custom;
 
+import android.content.Intent;
+
 import io.github.lee0701.mozc.custom.preference.MozcProxyActivity;
 import io.github.lee0701.mozc.custom.preference.MozcProxyPreferenceActivity;
-
-import android.content.Intent;
 
 /**
  * Activity to show launcher icon on the home screen.
@@ -42,8 +42,8 @@ import android.content.Intent;
  */
 public class LauncherActivity extends MozcProxyActivity {
 
-  @Override
-  protected Intent getForwardIntent() {
-    return new Intent(this, MozcProxyPreferenceActivity.class);
-  }
+    @Override
+    protected Intent getForwardIntent() {
+        return new Intent(this, MozcProxyPreferenceActivity.class);
+    }
 }

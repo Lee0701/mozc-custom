@@ -29,81 +29,82 @@
 
 package io.github.lee0701.mozc.custom;
 
-import io.github.lee0701.mozc.custom.mushroom.MushroomUtil;
-import io.github.lee0701.mozc.custom.ui.MenuDialog.MenuDialogListener;
-import com.google.common.base.Preconditions;
-
 import android.content.Context;
 import android.content.Intent;
 import android.inputmethodservice.InputMethodService;
 import android.view.inputmethod.InputConnection;
+
+import com.google.common.base.Preconditions;
+
+import io.github.lee0701.mozc.custom.mushroom.MushroomUtil;
+import io.github.lee0701.mozc.custom.ui.MenuDialog.MenuDialogListener;
 
 /**
  * Real implementation of MozcDialogListener.
  *
  */
 class MozcMenuDialogListenerImpl implements MenuDialogListener {
-  private final InputMethodService inputMethodService;
-  private final ViewEventListener eventListener;
-  private boolean showInputMethodPicker = false;
+    private final InputMethodService inputMethodService;
+    private final ViewEventListener eventListener;
+    private boolean showInputMethodPicker = false;
 
-  MozcMenuDialogListenerImpl(
-      InputMethodService inputMethodService, ViewEventListener eventListener) {
-    this.inputMethodService = Preconditions.checkNotNull(inputMethodService);
-    this.eventListener = Preconditions.checkNotNull(eventListener);
-  }
-
-  @Override
-  public void onShow(Context context) {
-    showInputMethodPicker = false;
-  }
-
-  @Override
-  public void onDismiss(Context context) {
-    if (showInputMethodPicker) {
-      // Send a message to show the input method picker dialog.
-      if (!MozcUtil.requestShowInputMethodPicker(context)) {
-        MozcLog.e("Failed to send message to launch the input method picker dialog.");
-      }
-    }
-  }
-
-  @Override
-  public void onShowInputMethodPickerSelected(Context context) {
-    // We can't show the input method picker here, due to some event handling in android
-    // framework. So, we postpone it and invoke at dismissing timing of this dialog.
-    showInputMethodPicker = true;
-  }
-
-  @Override
-  public void onLaunchPreferenceActivitySelected(Context context) {
-    // Launch the preference activity.
-    Intent intent =
-        new Intent(context,
-                   DependencyFactory.getDependency(context).getPreferenceActivityClass());
-    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-    context.startActivity(intent);
-  }
-
-  @Override
-  public void onShowMushroomSelectionDialogSelected(Context context) {
-    // Reset the composing text, otherwise the composing text will be committed automatically
-    // and as the result the user would see the duplicated committing.
-    InputConnection inputConnection = inputMethodService.getCurrentInputConnection();
-    String composingText = "";
-    if (inputConnection != null) {
-      if (inputConnection instanceof ComposingTextTrackingInputConnection) {
-        composingText =
-            ComposingTextTrackingInputConnection.class.cast(inputConnection).getComposingText();
-      }
-      inputConnection.setComposingText("", MozcUtil.CURSOR_POSITION_TAIL);
+    MozcMenuDialogListenerImpl(
+            InputMethodService inputMethodService, ViewEventListener eventListener) {
+        this.inputMethodService = Preconditions.checkNotNull(inputMethodService);
+        this.eventListener = Preconditions.checkNotNull(eventListener);
     }
 
-    eventListener.onShowMushroomSelectionDialog();
+    @Override
+    public void onShow(Context context) {
+        showInputMethodPicker = false;
+    }
 
-    // Launch the activity.
-    Intent intent = MushroomUtil.createMushroomSelectionActivityLaunchingIntent(
-        context, inputMethodService.getCurrentInputEditorInfo().fieldId, composingText);
-    context.startActivity(intent);
-  }
+    @Override
+    public void onDismiss(Context context) {
+        if (showInputMethodPicker) {
+            // Send a message to show the input method picker dialog.
+            if (!MozcUtil.requestShowInputMethodPicker(context)) {
+                MozcLog.e("Failed to send message to launch the input method picker dialog.");
+            }
+        }
+    }
+
+    @Override
+    public void onShowInputMethodPickerSelected(Context context) {
+        // We can't show the input method picker here, due to some event handling in android
+        // framework. So, we postpone it and invoke at dismissing timing of this dialog.
+        showInputMethodPicker = true;
+    }
+
+    @Override
+    public void onLaunchPreferenceActivitySelected(Context context) {
+        // Launch the preference activity.
+        Intent intent =
+                new Intent(context,
+                        DependencyFactory.getDependency(context).getPreferenceActivityClass());
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(intent);
+    }
+
+    @Override
+    public void onShowMushroomSelectionDialogSelected(Context context) {
+        // Reset the composing text, otherwise the composing text will be committed automatically
+        // and as the result the user would see the duplicated committing.
+        InputConnection inputConnection = inputMethodService.getCurrentInputConnection();
+        String composingText = "";
+        if (inputConnection != null) {
+            if (inputConnection instanceof ComposingTextTrackingInputConnection) {
+                composingText =
+                        ((ComposingTextTrackingInputConnection) inputConnection).getComposingText();
+            }
+            inputConnection.setComposingText("", MozcUtil.CURSOR_POSITION_TAIL);
+        }
+
+        eventListener.onShowMushroomSelectionDialog();
+
+        // Launch the activity.
+        Intent intent = MushroomUtil.createMushroomSelectionActivityLaunchingIntent(
+                context, inputMethodService.getCurrentInputEditorInfo().fieldId, composingText);
+        context.startActivity(intent);
+    }
 }

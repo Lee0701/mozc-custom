@@ -29,22 +29,26 @@
 
 package io.github.lee0701.mozc.custom;
 
-import io.github.lee0701.mozc.custom.util.CursorAnchorInfoWrapper;
-
 import android.annotation.TargetApi;
 import android.view.inputmethod.CursorAnchorInfo;
 
+import io.github.lee0701.mozc.custom.util.CursorAnchorInfoWrapper;
 
-/** Thin wrapper for {@link MozcBaseService}. */
+
+/**
+ * Thin wrapper for {@link MozcBaseService}.
+ */
 public class MozcService extends MozcBaseService {
 
-  public MozcService() {
-  }
+    public MozcService() {
+    }
 
-  /** Converts {@link CursorAnchorInfo} to {@link CursorAnchorInfoWrapper} and process it. */
-  @Override
-  @TargetApi(21)
-  public void onUpdateCursorAnchorInfo(CursorAnchorInfo cursorAnchorInfo) {
-    super.onUpdateCursorAnchorInfoWrapper(new CursorAnchorInfoWrapper(cursorAnchorInfo));
-  }
+    /**
+     * Converts {@link CursorAnchorInfo} to {@link CursorAnchorInfoWrapper} and process it.
+     */
+    @Override
+    @TargetApi(21)
+    public void onUpdateCursorAnchorInfo(CursorAnchorInfo cursorAnchorInfo) {
+        super.onUpdateCursorAnchorInfoWrapper(new CursorAnchorInfoWrapper(cursorAnchorInfo));
+    }
 }

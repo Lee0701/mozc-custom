@@ -29,20 +29,15 @@
 
 package io.github.lee0701.mozc.custom.emoji;
 
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Request;
-//import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Request.EmojiCarrierType;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Request.RewriterCapability;
+import android.os.Bundle;
+import android.view.inputmethod.EditorInfo;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 
-import android.os.Bundle;
-import android.view.inputmethod.EditorInfo;
-
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.Map;
+import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Request;
+import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Request.RewriterCapability;
 
 /**
  * Utility class for emoji handling.
@@ -50,16 +45,17 @@ import java.util.Map;
  */
 public class EmojiUtil {
 
-  public static final int MIN_EMOJI_PUA_CODE_POINT = 0xFE000;
-  public static final int MAX_EMOJI_PUA_CODE_POINT = 0xFEEA0;
+    public static final int MIN_EMOJI_PUA_CODE_POINT = 0xFE000;
+    public static final int MAX_EMOJI_PUA_CODE_POINT = 0xFEEA0;
 
-  private static final int UNICODE_EMOJI_SUPPORT_API_VERSION = 16;
-  // This field is initialized lazily.
-  @VisibleForTesting static volatile Optional<Boolean> unicodeEmojiRenderable = Optional.absent();
+    private static final int UNICODE_EMOJI_SUPPORT_API_VERSION = 16;
+    // This field is initialized lazily.
+    @VisibleForTesting
+    static volatile Optional<Boolean> unicodeEmojiRenderable = Optional.absent();
 
-  /**
-   * Note that if the key is {@link EmojiProviderType#NONE}, {@code null} is returned.
-   */
+    /**
+     * Note that if the key is {@link EmojiProviderType#NONE}, {@code null} is returned.
+     */
 //  private static final Map<EmojiProviderType, EmojiCarrierType> CARRIER_EMOJI_PROVIDER_TYPE_MAP;
 //  static {
 //    EnumMap<EmojiProviderType, EmojiCarrierType> map =
@@ -69,72 +65,80 @@ public class EmojiUtil {
 //    map.put(EmojiProviderType.KDDI, EmojiCarrierType.KDDI_EMOJI);
 //    CARRIER_EMOJI_PROVIDER_TYPE_MAP = Collections.unmodifiableMap(map);
 //  }
+    private EmojiUtil() {
+    }
 
-  private EmojiUtil() {}
+    /**
+     * @return {@code true} if the given {@code codePoint} is in the emoji pua range.
+     * Note that the current system may not support codepoint nor the package
+     * may not have the corresponding drawable resource for the codepoint,
+     * even if this method returns {@code true}.
+     */
+    public static boolean isCarrierEmoji(int codePoint) {
+        return MIN_EMOJI_PUA_CODE_POINT <= codePoint && codePoint <= MAX_EMOJI_PUA_CODE_POINT;
+    }
 
-  /**
-   * @return {@code true} if the given {@code codePoint} is in the emoji pua range.
-   *   Note that the current system may not support codepoint nor the package
-   *   may not have the corresponding drawable resource for the codepoint,
-   *   even if this method returns {@code true}.
-   */
-  public static boolean isCarrierEmoji(int codePoint) {
-    return MIN_EMOJI_PUA_CODE_POINT <= codePoint && codePoint <= MAX_EMOJI_PUA_CODE_POINT;
-  }
-
-  /** @return {@code true} if the given {@code type} is carrier emoji provider type. */
-  public static boolean isCarrierEmojiProviderType(EmojiProviderType type) {
+    /**
+     * @return {@code true} if the given {@code type} is carrier emoji provider type.
+     */
+    public static boolean isCarrierEmojiProviderType(EmojiProviderType type) {
 //    return CARRIER_EMOJI_PROVIDER_TYPE_MAP.containsKey(Preconditions.checkNotNull(type));
-      return false;
-  }
-
-  /** @return {@code true} if carrier emoji is allowed on the text edit. */
-  public static boolean isCarrierEmojiAllowed(EditorInfo editorInfo) {
-    Bundle bundle = Preconditions.checkNotNull(editorInfo).extras;
-    return (bundle != null) && bundle.getBoolean("allowEmoji");
-  }
-
-  /** @return {@code true} if Unicode 6.0 emoji is available. */
-  public static boolean isUnicodeEmojiAvailable(int sdkInt) {
-    if (sdkInt < UNICODE_EMOJI_SUPPORT_API_VERSION) {
-      return false;
+        return false;
     }
 
-    if (unicodeEmojiRenderable.isPresent()) {
-      return unicodeEmojiRenderable.get().booleanValue();
+    /**
+     * @return {@code true} if carrier emoji is allowed on the text edit.
+     */
+    public static boolean isCarrierEmojiAllowed(EditorInfo editorInfo) {
+        Bundle bundle = Preconditions.checkNotNull(editorInfo).extras;
+        return (bundle != null) && bundle.getBoolean("allowEmoji");
     }
 
-    // Lazy initialization
-    synchronized (EmojiUtil.class) {
-      if (!unicodeEmojiRenderable.isPresent()) {
-        EmojiRenderableChecker checker = new EmojiRenderableChecker();
-        String blackSunWithRays = "\u2600";
-        boolean result = checker.isRenderable(blackSunWithRays);
-        unicodeEmojiRenderable = Optional.of(result);
-      }
+    /**
+     * @return {@code true} if Unicode 6.0 emoji is available.
+     */
+    public static boolean isUnicodeEmojiAvailable(int sdkInt) {
+        if (sdkInt < UNICODE_EMOJI_SUPPORT_API_VERSION) {
+            return false;
+        }
+
+        if (unicodeEmojiRenderable.isPresent()) {
+            return unicodeEmojiRenderable.get().booleanValue();
+        }
+
+        // Lazy initialization
+        synchronized (EmojiUtil.class) {
+            if (!unicodeEmojiRenderable.isPresent()) {
+                EmojiRenderableChecker checker = new EmojiRenderableChecker();
+                String blackSunWithRays = "\u2600";
+                boolean result = checker.isRenderable(blackSunWithRays);
+                unicodeEmojiRenderable = Optional.of(result);
+            }
+        }
+        return unicodeEmojiRenderable.get();
     }
-    return unicodeEmojiRenderable.get();
-  }
 
-  /** @return {@code Request} instance for the given emoji settings. */
-  public static Request createEmojiRequest(int sdkInt, EmojiProviderType emojiProviderType) {
-    Preconditions.checkNotNull(emojiProviderType);
+    /**
+     * @return {@code Request} instance for the given emoji settings.
+     */
+    public static Request createEmojiRequest(int sdkInt, EmojiProviderType emojiProviderType) {
+        Preconditions.checkNotNull(emojiProviderType);
 
-    int availableEmojiCarrier = 0;
-    if (isUnicodeEmojiAvailable(sdkInt)) {
+        int availableEmojiCarrier = 0;
+        if (isUnicodeEmojiAvailable(sdkInt)) {
 //      availableEmojiCarrier |= EmojiCarrierType.UNICODE_EMOJI.getNumber();
-    }
+        }
 
-    // NOTE: If emojiCarrierType is NONE, availableEmojiCarrier is not updated here.
+        // NOTE: If emojiCarrierType is NONE, availableEmojiCarrier is not updated here.
 //    EmojiCarrierType emojiCarrierType =
 //        CARRIER_EMOJI_PROVIDER_TYPE_MAP.get(emojiProviderType);
 //    if (emojiCarrierType != null) {
 //      availableEmojiCarrier |= emojiCarrierType.getNumber();
 //    }
 
-    return Request.newBuilder()
+        return Request.newBuilder()
 //        .setAvailableEmojiCarrier(availableEmojiCarrier)
-        .setEmojiRewriterCapability(RewriterCapability.ALL.getNumber())
-        .build();
-  }
+                .setEmojiRewriterCapability(RewriterCapability.ALL.getNumber())
+                .build();
+    }
 }

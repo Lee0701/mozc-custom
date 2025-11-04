@@ -29,11 +29,6 @@
 
 package io.github.lee0701.mozc.custom.preference;
 
-import io.github.lee0701.mozc.custom.R;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -44,7 +39,13 @@ import android.view.KeyEvent;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
+
 import java.util.regex.Pattern;
+
+import io.github.lee0701.mozc.custom.R;
 
 /**
  * Mini browser to show licenses.
@@ -58,90 +59,90 @@ import java.util.regex.Pattern;
  */
 public class MiniBrowserActivity extends Activity {
 
-  // TODO(matsuzakit): "print" link is meaningless. Should be invisible.
-  // TODO(matsuzakit): CSS needs to be improved.
-
-  @VisibleForTesting
-  static final class MiniBrowserClient extends WebViewClient {
-    private final String restrictionPattern;
-    private final PackageManager packageManager;
-    private final Context context;
+    // TODO(matsuzakit): "print" link is meaningless. Should be invisible.
+    // TODO(matsuzakit): CSS needs to be improved.
 
     @VisibleForTesting
-    MiniBrowserClient(String restrictionPattern, PackageManager packageManager, Context context) {
-      Preconditions.checkNotNull(restrictionPattern);
-      Preconditions.checkNotNull(packageManager);
-      Preconditions.checkNotNull(packageManager);
+    static final class MiniBrowserClient extends WebViewClient {
+        private final String restrictionPattern;
+        private final PackageManager packageManager;
+        private final Context context;
 
-      this.restrictionPattern = restrictionPattern;
-      this.packageManager = packageManager;
-      this.context = context;
+        @VisibleForTesting
+        MiniBrowserClient(String restrictionPattern, PackageManager packageManager, Context context) {
+            Preconditions.checkNotNull(restrictionPattern);
+            Preconditions.checkNotNull(packageManager);
+            Preconditions.checkNotNull(packageManager);
+
+            this.restrictionPattern = restrictionPattern;
+            this.packageManager = packageManager;
+            this.context = context;
+        }
+
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, String url) {
+            try {
+                Preconditions.checkNotNull(view);
+                Preconditions.checkNotNull(url);
+
+                // Use temporary matcher intentionally.
+                // Regex engine is rather heavy to instantiate so use it as less as possible.
+                if (!Pattern.matches(restrictionPattern, url)) {
+                    // If the URL's doesn't match restriction pattern,
+                    // delegate the operation to the default browser.
+                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                    if (!packageManager.queryIntentActivities(browserIntent, 0).isEmpty()) {
+                        context.startActivity(browserIntent);
+                    }
+                    // If no default browser is available, do nothing.
+                    return true;
+                }
+                // Prevent from invoking default browser.
+                // In some special environment default browser is not installed.
+                return false;
+            } catch (Throwable e) {
+                // This method might be called from native layer.
+                // Therefore throwing something from here causes native crash.
+                // To prevent from native crash, catches all here.
+                // At least SecurityException must be caught here for Android-TV.
+                return true;
+            }
+        }
+    }
+
+    private Optional<WebView> webView = Optional.absent();
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        WebView webView = new WebView(this);
+        this.webView = Optional.of(webView);
+        webView.setWebViewClient(
+                new MiniBrowserClient(getResources().getString(R.string.pref_url_restriction_regex),
+                        getPackageManager(), this));
+        webView.loadUrl(getIntent().getData().toString());
+        setContentView(webView);
     }
 
     @Override
-    public boolean shouldOverrideUrlLoading(WebView view, String url) {
-      try {
-        Preconditions.checkNotNull(view);
-        Preconditions.checkNotNull(url);
-
-        // Use temporary matcher intentionally.
-        // Regex engine is rather heavy to instantiate so use it as less as possible.
-        if (!Pattern.matches(restrictionPattern, url)) {
-          // If the URL's doesn't match restriction pattern,
-          // delegate the operation to the default browser.
-          Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-          if (!packageManager.queryIntentActivities(browserIntent, 0).isEmpty()) {
-            context.startActivity(browserIntent);
-          }
-          // If no default browser is available, do nothing.
-          return true;
+    protected void onPause() {
+        // Clear cache in order to show appropriate website even if system locale is changed.
+        if (this.webView.isPresent()) {
+            this.webView.get().clearCache(true);
         }
-        // Prevent from invoking default browser.
-        // In some special environment default browser is not installed.
-        return false;
-      } catch (Throwable e) {
-        // This method might be called from native layer.
-        // Therefore throwing something from here causes native crash.
-        // To prevent from native crash, catches all here.
-        // At least SecurityException must be caught here for Android-TV.
-        return true;
-      }
+        super.onPause();
     }
-  }
 
-  private Optional<WebView> webView = Optional.absent();
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        Preconditions.checkNotNull(event);
 
-  @Override
-  protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    WebView webView = new WebView(this);
-    this.webView = Optional.of(webView);
-    webView.setWebViewClient(
-        new MiniBrowserClient(getResources().getString(R.string.pref_url_restriction_regex),
-                              getPackageManager(), this));
-    webView.loadUrl(getIntent().getData().toString());
-    setContentView(webView);
-  }
-
-  @Override
-  protected void onPause() {
-    // Clear cache in order to show appropriate website even if system locale is changed.
-    if (this.webView.isPresent()) {
-      this.webView.get().clearCache(true);
+        // Enable back-key inside the webview.
+        // If no history exists, default behavior is executed (finish the activity).
+        if (keyCode == KeyEvent.KEYCODE_BACK && webView.isPresent() && webView.get().canGoBack()) {
+            webView.get().goBack();
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
     }
-    super.onPause();
-  }
-
-  @Override
-  public boolean onKeyDown(int keyCode, KeyEvent event) {
-    Preconditions.checkNotNull(event);
-
-    // Enable back-key inside the webview.
-    // If no history exists, default behavior is executed (finish the activity).
-    if (keyCode == KeyEvent.KEYCODE_BACK && webView.isPresent() && webView.get().canGoBack()) {
-      webView.get().goBack();
-      return true;
-    }
-    return super.onKeyDown(keyCode, event);
-  }
 }

@@ -29,12 +29,12 @@
 
 package org.mozc.android.inputmethod.japanese.session;
 
-import io.github.lee0701.mozc.custom.MozcUtil;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Command;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Output;
+import android.content.Context;
+
 import com.google.common.base.Preconditions;
 
-import android.content.Context;
+import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Command;
+import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Output;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -43,69 +43,72 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
+import io.github.lee0701.mozc.custom.MozcUtil;
+
 /**
  * A session handler which connect the Mozc server by using socket.
- *
+ * <p>
  * The background of this class is described in server/mozc_rpc_server_main.cc
  *
  */
 class SocketSessionHandler implements SessionHandler {
-  // Time out duration for connection in milliseconds.
-  private static final int CONNECTING_TIMEOUT = 1 * 1000;
+    // Time out duration for connection in milliseconds.
+    private static final int CONNECTING_TIMEOUT = 1000;
 
-  // Time out duration for reachability check in milliseconds.
-  private static final int REACHABLITY_TIMEOUT = 1 * 100;
+    // Time out duration for reachability check in milliseconds.
+    private static final int REACHABLITY_TIMEOUT = 100;
 
-  private final InetAddress host;
-  private final int port;
-  SocketSessionHandler(InetAddress host, int port) {
-    this.host = Preconditions.checkNotNull(host);
-    this.port = port;
-  }
+    private final InetAddress host;
+    private final int port;
 
-  @Override
-  public void initialize(Context context) {
-    // No operation.
-  }
-
-  @Override
-  public Command evalCommand(Command command) {
-    Preconditions.checkNotNull(command);
-
-    // We should be in a worker thread so below invocation is not needed. Just in case.
-    MozcUtil.relaxMainthreadStrictMode();
-    try {
-      Socket socket = new Socket();
-      boolean succeeded = false;
-      try {
-        socket.connect(new InetSocketAddress(host, port), CONNECTING_TIMEOUT);
-        byte[] inBytes = command.getInput().toByteArray();
-        DataOutputStream outputStream = new DataOutputStream(socket.getOutputStream());
-        outputStream.writeInt(inBytes.length);  // Network order.
-        outputStream.write(inBytes);
-        DataInputStream inputStream = new DataInputStream(socket.getInputStream());
-        byte[] outBytes = new byte[inputStream.readInt()];  // Network order.
-        inputStream.readFully(outBytes);
-        Command result = Command.newBuilder(command).setOutput(Output.parseFrom(outBytes)).build();
-        succeeded = true;
-        return result;
-      } finally {
-        // We just want to throw an IOException from close() method iff no method invocations
-        // in this try block throws (another) IOException.
-        MozcUtil.close(socket, !succeeded);
-      }
-    } catch (IOException e) {
-      // Abort if an exception is thrown and re-launch the service.
-      throw new RuntimeException(e);
+    SocketSessionHandler(InetAddress host, int port) {
+        this.host = Preconditions.checkNotNull(host);
+        this.port = port;
     }
-  }
 
-  boolean isReachable() {
-    MozcUtil.relaxMainthreadStrictMode();
-    try {
-      return host.isReachable(REACHABLITY_TIMEOUT);
-    } catch (IOException e) {
-      return false;
+    @Override
+    public void initialize(Context context) {
+        // No operation.
     }
-  }
+
+    @Override
+    public Command evalCommand(Command command) {
+        Preconditions.checkNotNull(command);
+
+        // We should be in a worker thread so below invocation is not needed. Just in case.
+        MozcUtil.relaxMainthreadStrictMode();
+        try {
+            Socket socket = new Socket();
+            boolean succeeded = false;
+            try {
+                socket.connect(new InetSocketAddress(host, port), CONNECTING_TIMEOUT);
+                byte[] inBytes = command.getInput().toByteArray();
+                DataOutputStream outputStream = new DataOutputStream(socket.getOutputStream());
+                outputStream.writeInt(inBytes.length);  // Network order.
+                outputStream.write(inBytes);
+                DataInputStream inputStream = new DataInputStream(socket.getInputStream());
+                byte[] outBytes = new byte[inputStream.readInt()];  // Network order.
+                inputStream.readFully(outBytes);
+                Command result = Command.newBuilder(command).setOutput(Output.parseFrom(outBytes)).build();
+                succeeded = true;
+                return result;
+            } finally {
+                // We just want to throw an IOException from close() method iff no method invocations
+                // in this try block throws (another) IOException.
+                MozcUtil.close(socket, !succeeded);
+            }
+        } catch (IOException e) {
+            // Abort if an exception is thrown and re-launch the service.
+            throw new RuntimeException(e);
+        }
+    }
+
+    boolean isReachable() {
+        MozcUtil.relaxMainthreadStrictMode();
+        try {
+            return host.isReachable(REACHABLITY_TIMEOUT);
+        } catch (IOException e) {
+            return false;
+        }
+    }
 }

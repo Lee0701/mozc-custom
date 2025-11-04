@@ -29,13 +29,13 @@
 
 package io.github.lee0701.mozc.custom.preference;
 
-import org.mozc.android.inputmethod.japanese.session.SessionExecutor;
-import org.mozc.android.inputmethod.japanese.session.SessionHandlerFactory;
-
 import android.content.Context;
 import android.content.DialogInterface;
 import android.preference.DialogPreference;
 import android.util.AttributeSet;
+
+import org.mozc.android.inputmethod.japanese.session.SessionExecutor;
+import org.mozc.android.inputmethod.japanese.session.SessionHandlerFactory;
 
 /**
  * A DialogPreference to clear entire history of conversions.
@@ -44,21 +44,21 @@ import android.util.AttributeSet;
  *
  */
 public class ClearConversionHistoryDialogPreference extends DialogPreference {
-  public ClearConversionHistoryDialogPreference(Context context, AttributeSet attrs, int defStyle) {
-    super(context, attrs, defStyle);
-  }
-
-  public ClearConversionHistoryDialogPreference(Context context, AttributeSet attrs) {
-    super(context, attrs);
-  }
-
-  @Override
-  public void onClick(DialogInterface dialog, int which) {
-    if (which == DialogInterface.BUTTON_POSITIVE) {
-      SessionExecutor sessionExecutor = SessionExecutor.getInstanceInitializedIfNecessary(
-          new SessionHandlerFactory(getContext()), getContext());
-      sessionExecutor.clearUserHistory();
-      sessionExecutor.clearUserPrediction();
+    public ClearConversionHistoryDialogPreference(Context context, AttributeSet attrs, int defStyle) {
+        super(context, attrs, defStyle);
     }
-  }
+
+    public ClearConversionHistoryDialogPreference(Context context, AttributeSet attrs) {
+        super(context, attrs);
+    }
+
+    @Override
+    public void onClick(DialogInterface dialog, int which) {
+        if (which == DialogInterface.BUTTON_POSITIVE) {
+            SessionExecutor sessionExecutor = SessionExecutor.getInstanceInitializedIfNecessary(
+                    new SessionHandlerFactory(getContext()), getContext());
+            sessionExecutor.clearUserHistory();
+            sessionExecutor.clearUserPrediction();
+        }
+    }
 }

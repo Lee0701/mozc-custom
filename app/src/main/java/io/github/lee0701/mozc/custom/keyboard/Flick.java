@@ -38,49 +38,50 @@ import com.google.common.base.Preconditions;
  *
  */
 public class Flick {
-  /**
-   * A simple enum representing flicking direction.
-   */
-  public static enum Direction {
-    CENTER(0), LEFT(1), RIGHT(2), UP(3), DOWN(4);
+    /**
+     * A simple enum representing flicking direction.
+     */
+    public enum Direction {
+        CENTER(0), LEFT(1), RIGHT(2), UP(3), DOWN(4);
 
-    // An index also defined in res/values/attr.xml.
-    final int index;
-    private Direction(int index) {
-      this.index = index;
-    }
+        // An index also defined in res/values/attr.xml.
+        final int index;
 
-    public static Direction valueOf(int index) {
-      for (Direction direction : values()) {
-        if (direction.index == index) {
-          return direction;
+        Direction(int index) {
+            this.index = index;
         }
-      }
-      throw new IllegalArgumentException("Corresponding Direction is not found: " + index);
+
+        public static Direction valueOf(int index) {
+            for (Direction direction : values()) {
+                if (direction.index == index) {
+                    return direction;
+                }
+            }
+            throw new IllegalArgumentException("Corresponding Direction is not found: " + index);
+        }
     }
-  }
 
-  private final Direction direction;
-  private final KeyEntity keyEntity;
+    private final Direction direction;
+    private final KeyEntity keyEntity;
 
-  public Flick(Direction direction, KeyEntity keyEntity) {
-    this.direction = Preconditions.checkNotNull(direction);
-    this.keyEntity = Preconditions.checkNotNull(keyEntity);
-  }
+    public Flick(Direction direction, KeyEntity keyEntity) {
+        this.direction = Preconditions.checkNotNull(direction);
+        this.keyEntity = Preconditions.checkNotNull(keyEntity);
+    }
 
-  public Direction getDirection() {
-    return direction;
-  }
+    public Direction getDirection() {
+        return direction;
+    }
 
-  public KeyEntity getKeyEntity() {
-    return keyEntity;
-  }
+    public KeyEntity getKeyEntity() {
+        return keyEntity;
+    }
 
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-                  .add("direction", direction.toString())
-                  .add("keyEntity", keyEntity.toString())
-                  .toString();
-  }
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("direction", direction.toString())
+                .add("keyEntity", keyEntity.toString())
+                .toString();
+    }
 }

@@ -29,16 +29,17 @@
 
 package io.github.lee0701.mozc.custom.preference;
 
-import io.github.lee0701.mozc.custom.ViewManagerInterface.LayoutAdjustment;
-import io.github.lee0701.mozc.custom.emoji.EmojiProviderType;
-import io.github.lee0701.mozc.custom.R;
-import io.github.lee0701.mozc.custom.view.SkinType;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
-
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
+
+import io.github.lee0701.mozc.custom.R;
+import io.github.lee0701.mozc.custom.ViewManagerInterface.LayoutAdjustment;
+import io.github.lee0701.mozc.custom.emoji.EmojiProviderType;
+import io.github.lee0701.mozc.custom.view.SkinType;
 
 /**
  * This class expresses the client-side preferences which corresponds to current
@@ -46,235 +47,238 @@ import android.content.res.Resources;
  *
  */
 public class ClientSidePreference {
-  /**
-   * Keyboard layout.
-   * A user can choose one of the layouts, and then the keyboard (sub)layouts are activated.
-   *
-   * Here "(sub)layouts" means that for example QWERTY layout contains following (sub)layouts;
-   * QWERTY for Hiragana, QWERTY for Alphabet, QWERTY Symbol for Hiragana,
-   * and QWERTY Symbol for Alphabet.
-   * If a user choose a keyboard layout, (s)he can switch among the (sub)layouts which
-   * belong to the selected layout.
-   */
-  public enum KeyboardLayout {
-    TWELVE_KEYS(1),
-    QWERTY(2),
-    GODAN(3),
-    ;
+    /**
+     * Keyboard layout.
+     * A user can choose one of the layouts, and then the keyboard (sub)layouts are activated.
+     * <p>
+     * Here "(sub)layouts" means that for example QWERTY layout contains following (sub)layouts;
+     * QWERTY for Hiragana, QWERTY for Alphabet, QWERTY Symbol for Hiragana,
+     * and QWERTY Symbol for Alphabet.
+     * If a user choose a keyboard layout, (s)he can switch among the (sub)layouts which
+     * belong to the selected layout.
+     */
+    public enum KeyboardLayout {
+        TWELVE_KEYS(1),
+        QWERTY(2),
+        GODAN(3),
+        ;
 
-    // ID for usage stats.
-    private final int id;
+        // ID for usage stats.
+        private final int id;
 
-    private KeyboardLayout(int id) {
-      this.id = id;
+        KeyboardLayout(int id) {
+            this.id = id;
+        }
+
+        public int getId() {
+            return id;
+        }
     }
 
-    public int getId() {
-      return id;
-    }
-  }
-
-  /**
-   * A user's input style.
-   */
-  public enum InputStyle {
-    TOGGLE,
-    FLICK,
-    TOGGLE_FLICK,
-  }
-
-  /**
-   *  Hardware Keyboard Mapping.
-   */
-  public enum HardwareKeyMap {
-    DEFAULT,
-    JAPANESE109A,
-  }
-
-  private final boolean isHapticFeedbackEnabled;
-  private final long hapticFeedbackDuration;
-  private final boolean isSoundFeedbackEnabled;
-  private final int soundFeedbackVolume;
-  private final boolean isPopupFeedbackEnabled;
-  private final KeyboardLayout keyboardLayout;
-  private final InputStyle inputStyle;
-  private final boolean qwertyLayoutForAlphabet;
-  private final boolean fullscreenMode;
-  private final int flickSensitivity;
-  private final EmojiProviderType emojiProviderType;
-  private final HardwareKeyMap hardwareKeyMap;
-  private final SkinType skinType;
-  private final boolean isMicrophoneButtonEnabled;
-  private final LayoutAdjustment layoutAdjustment;
-
-  /** Percentage of keyboard height */
-  private final int keyboardHeightRatio;
-
-  /**
-   * If you want to use this method,
-   * consider using {@link #ClientSidePreference(SharedPreferences, Resources, int)} instead.
-   */
-  @VisibleForTesting public ClientSidePreference(
-      boolean isHapticFeedbackEnabled, long hapticFeedbackDuration, boolean isSoundFeedbackEnabled,
-      int soundFeedbackVolume, boolean isPopupFeedbackEnabled, KeyboardLayout keyboardLayout,
-      InputStyle inputStyle, boolean qwertyLayoutForAlphabet, boolean fullscreenMode,
-      int flickSensitivity, EmojiProviderType emojiProviderType, HardwareKeyMap hardwareKeyMap,
-      SkinType skinType, boolean isMicrophoneButtonEnabled, LayoutAdjustment layoutAdjustment,
-      int keyboardHeightRatio) {
-    this.isHapticFeedbackEnabled = isHapticFeedbackEnabled;
-    this.hapticFeedbackDuration = hapticFeedbackDuration;
-    this.isSoundFeedbackEnabled = isSoundFeedbackEnabled;
-    this.soundFeedbackVolume = soundFeedbackVolume;
-    this.isPopupFeedbackEnabled = isPopupFeedbackEnabled;
-    this.keyboardLayout = Preconditions.checkNotNull(keyboardLayout);
-    this.inputStyle = Preconditions.checkNotNull(inputStyle);
-    this.qwertyLayoutForAlphabet = qwertyLayoutForAlphabet;
-    this.fullscreenMode = fullscreenMode;
-    this.flickSensitivity = flickSensitivity;
-    this.emojiProviderType = Preconditions.checkNotNull(emojiProviderType);
-    this.hardwareKeyMap = Preconditions.checkNotNull(hardwareKeyMap);
-    this.skinType = Preconditions.checkNotNull(skinType);
-    this.isMicrophoneButtonEnabled = isMicrophoneButtonEnabled;
-    this.layoutAdjustment = Preconditions.checkNotNull(layoutAdjustment);
-    this.keyboardHeightRatio = keyboardHeightRatio;
-  }
-
-  public ClientSidePreference(
-      SharedPreferences sharedPreferences, Resources resources, int deviceOrientation) {
-    Preconditions.checkNotNull(sharedPreferences);
-
-    isHapticFeedbackEnabled =
-        sharedPreferences.getBoolean(PreferenceUtil.PREF_HAPTIC_FEEDBACK_KEY, false);
-    hapticFeedbackDuration =
-        sharedPreferences.getInt(PreferenceUtil.PREF_HAPTIC_FEEDBACK_DURATION_KEY, 30);
-    isSoundFeedbackEnabled =
-        sharedPreferences.getBoolean(PreferenceUtil.PREF_SOUND_FEEDBACK_KEY, false);
-    soundFeedbackVolume =
-        sharedPreferences.getInt(PreferenceUtil.PREF_SOUND_FEEDBACK_VOLUME_KEY, 50);
-    isPopupFeedbackEnabled =
-        sharedPreferences.getBoolean(PreferenceUtil.PREF_POPUP_FEEDBACK_KEY, true);
-    isMicrophoneButtonEnabled =
-        sharedPreferences.getBoolean(PreferenceUtil.PREF_VOICE_INPUT_KEY, true);
-
-    String keyboardLayoutKey;
-    String inputStyleKey;
-    String qwertyLayoutForAlphabetKey;
-    String flickSensitivityKey;
-    String layoutAdjustmentKey;
-    String keyboardHeightRatioKey;
-
-    if (PreferenceUtil.isLandscapeKeyboardSettingActive(sharedPreferences, deviceOrientation)) {
-      keyboardLayoutKey = PreferenceUtil.PREF_LANDSCAPE_KEYBOARD_LAYOUT_KEY;
-      inputStyleKey = PreferenceUtil.PREF_LANDSCAPE_INPUT_STYLE_KEY;
-      qwertyLayoutForAlphabetKey = PreferenceUtil.PREF_LANDSCAPE_QWERTY_LAYOUT_FOR_ALPHABET_KEY;
-      flickSensitivityKey = PreferenceUtil.PREF_LANDSCAPE_FLICK_SENSITIVITY_KEY;
-      layoutAdjustmentKey = PreferenceUtil.PREF_LANDSCAPE_LAYOUT_ADJUSTMENT_KEY;
-      keyboardHeightRatioKey = PreferenceUtil.PREF_LANDSCAPE_KEYBOARD_HEIGHT_RATIO_KEY;
-    } else {
-      keyboardLayoutKey = PreferenceUtil.PREF_PORTRAIT_KEYBOARD_LAYOUT_KEY;
-      inputStyleKey = PreferenceUtil.PREF_PORTRAIT_INPUT_STYLE_KEY;
-      qwertyLayoutForAlphabetKey = PreferenceUtil.PREF_PORTRAIT_QWERTY_LAYOUT_FOR_ALPHABET_KEY;
-      flickSensitivityKey = PreferenceUtil.PREF_PORTRAIT_FLICK_SENSITIVITY_KEY;
-      layoutAdjustmentKey = PreferenceUtil.PREF_PORTRAIT_LAYOUT_ADJUSTMENT_KEY;
-      keyboardHeightRatioKey = PreferenceUtil.PREF_PORTRAIT_KEYBOARD_HEIGHT_RATIO_KEY;
+    /**
+     * A user's input style.
+     */
+    public enum InputStyle {
+        TOGGLE,
+        FLICK,
+        TOGGLE_FLICK,
     }
 
-    // Don't apply pref_portrait_keyboard_settings_for_landscape for fullscreen mode.
-    String fullscreenKey = (deviceOrientation == Configuration.ORIENTATION_LANDSCAPE)
-        ? PreferenceUtil.PREF_LANDSCAPE_FULLSCREEN_KEY
-        : PreferenceUtil.PREF_PORTRAIT_FULLSCREEN_KEY;
+    /**
+     * Hardware Keyboard Mapping.
+     */
+    public enum HardwareKeyMap {
+        DEFAULT,
+        JAPANESE109A,
+    }
 
-    keyboardLayout = PreferenceUtil.getEnum(
-        sharedPreferences, keyboardLayoutKey,
-        KeyboardLayout.class, KeyboardLayout.TWELVE_KEYS, KeyboardLayout.GODAN);
-    inputStyle = PreferenceUtil.getEnum(
-        sharedPreferences, inputStyleKey,
-        InputStyle.class, InputStyle.TOGGLE_FLICK);
-    qwertyLayoutForAlphabet =
-        sharedPreferences.getBoolean(qwertyLayoutForAlphabetKey, false);
-    // On large screen device, pref_portrait_fullscreen_key and
-    // pref_landscape_fullscreen_key are omitted
-    // so below default value "false" is applied.
-    fullscreenMode =
-        sharedPreferences.getBoolean(fullscreenKey, false);
-    flickSensitivity = sharedPreferences.getInt(flickSensitivityKey, 0);
+    private final boolean isHapticFeedbackEnabled;
+    private final long hapticFeedbackDuration;
+    private final boolean isSoundFeedbackEnabled;
+    private final int soundFeedbackVolume;
+    private final boolean isPopupFeedbackEnabled;
+    private final KeyboardLayout keyboardLayout;
+    private final InputStyle inputStyle;
+    private final boolean qwertyLayoutForAlphabet;
+    private final boolean fullscreenMode;
+    private final int flickSensitivity;
+    private final EmojiProviderType emojiProviderType;
+    private final HardwareKeyMap hardwareKeyMap;
+    private final SkinType skinType;
+    private final boolean isMicrophoneButtonEnabled;
+    private final LayoutAdjustment layoutAdjustment;
 
-    emojiProviderType = PreferenceUtil.getEnum(
-        sharedPreferences, PreferenceUtil.PREF_EMOJI_PROVIDER_TYPE, EmojiProviderType.class,
-        EmojiProviderType.NONE);
+    /**
+     * Percentage of keyboard height
+     */
+    private final int keyboardHeightRatio;
 
-    hardwareKeyMap = PreferenceUtil.getEnum(
-        sharedPreferences, PreferenceUtil.PREF_HARDWARE_KEYMAP, HardwareKeyMap.class,
-        HardwareKeyMap.DEFAULT);
-    skinType = PreferenceUtil.getEnum(
-        sharedPreferences, resources.getString(R.string.pref_skin_type_key),
-        SkinType.class, SkinType.valueOf(resources.getString(R.string.pref_skin_type_default)));
-    layoutAdjustment = PreferenceUtil.getEnum(
-        sharedPreferences, layoutAdjustmentKey, LayoutAdjustment.class, LayoutAdjustment.FILL);
-    keyboardHeightRatio = sharedPreferences.getInt(keyboardHeightRatioKey, 100);
-  }
+    /**
+     * If you want to use this method,
+     * consider using {@link #ClientSidePreference(SharedPreferences, Resources, int)} instead.
+     */
+    @VisibleForTesting
+    public ClientSidePreference(
+            boolean isHapticFeedbackEnabled, long hapticFeedbackDuration, boolean isSoundFeedbackEnabled,
+            int soundFeedbackVolume, boolean isPopupFeedbackEnabled, KeyboardLayout keyboardLayout,
+            InputStyle inputStyle, boolean qwertyLayoutForAlphabet, boolean fullscreenMode,
+            int flickSensitivity, EmojiProviderType emojiProviderType, HardwareKeyMap hardwareKeyMap,
+            SkinType skinType, boolean isMicrophoneButtonEnabled, LayoutAdjustment layoutAdjustment,
+            int keyboardHeightRatio) {
+        this.isHapticFeedbackEnabled = isHapticFeedbackEnabled;
+        this.hapticFeedbackDuration = hapticFeedbackDuration;
+        this.isSoundFeedbackEnabled = isSoundFeedbackEnabled;
+        this.soundFeedbackVolume = soundFeedbackVolume;
+        this.isPopupFeedbackEnabled = isPopupFeedbackEnabled;
+        this.keyboardLayout = Preconditions.checkNotNull(keyboardLayout);
+        this.inputStyle = Preconditions.checkNotNull(inputStyle);
+        this.qwertyLayoutForAlphabet = qwertyLayoutForAlphabet;
+        this.fullscreenMode = fullscreenMode;
+        this.flickSensitivity = flickSensitivity;
+        this.emojiProviderType = Preconditions.checkNotNull(emojiProviderType);
+        this.hardwareKeyMap = Preconditions.checkNotNull(hardwareKeyMap);
+        this.skinType = Preconditions.checkNotNull(skinType);
+        this.isMicrophoneButtonEnabled = isMicrophoneButtonEnabled;
+        this.layoutAdjustment = Preconditions.checkNotNull(layoutAdjustment);
+        this.keyboardHeightRatio = keyboardHeightRatio;
+    }
 
-  public boolean isHapticFeedbackEnabled() {
-    return isHapticFeedbackEnabled;
-  }
+    public ClientSidePreference(
+            SharedPreferences sharedPreferences, Resources resources, int deviceOrientation) {
+        Preconditions.checkNotNull(sharedPreferences);
 
-  public long getHapticFeedbackDuration() {
-    return hapticFeedbackDuration;
-  }
+        isHapticFeedbackEnabled =
+                sharedPreferences.getBoolean(PreferenceUtil.PREF_HAPTIC_FEEDBACK_KEY, false);
+        hapticFeedbackDuration =
+                sharedPreferences.getInt(PreferenceUtil.PREF_HAPTIC_FEEDBACK_DURATION_KEY, 30);
+        isSoundFeedbackEnabled =
+                sharedPreferences.getBoolean(PreferenceUtil.PREF_SOUND_FEEDBACK_KEY, false);
+        soundFeedbackVolume =
+                sharedPreferences.getInt(PreferenceUtil.PREF_SOUND_FEEDBACK_VOLUME_KEY, 50);
+        isPopupFeedbackEnabled =
+                sharedPreferences.getBoolean(PreferenceUtil.PREF_POPUP_FEEDBACK_KEY, true);
+        isMicrophoneButtonEnabled =
+                sharedPreferences.getBoolean(PreferenceUtil.PREF_VOICE_INPUT_KEY, true);
 
-  public boolean isSoundFeedbackEnabled() {
-    return isSoundFeedbackEnabled;
-  }
+        String keyboardLayoutKey;
+        String inputStyleKey;
+        String qwertyLayoutForAlphabetKey;
+        String flickSensitivityKey;
+        String layoutAdjustmentKey;
+        String keyboardHeightRatioKey;
 
-  public int getSoundFeedbackVolume() {
-    return soundFeedbackVolume;
-  }
+        if (PreferenceUtil.isLandscapeKeyboardSettingActive(sharedPreferences, deviceOrientation)) {
+            keyboardLayoutKey = PreferenceUtil.PREF_LANDSCAPE_KEYBOARD_LAYOUT_KEY;
+            inputStyleKey = PreferenceUtil.PREF_LANDSCAPE_INPUT_STYLE_KEY;
+            qwertyLayoutForAlphabetKey = PreferenceUtil.PREF_LANDSCAPE_QWERTY_LAYOUT_FOR_ALPHABET_KEY;
+            flickSensitivityKey = PreferenceUtil.PREF_LANDSCAPE_FLICK_SENSITIVITY_KEY;
+            layoutAdjustmentKey = PreferenceUtil.PREF_LANDSCAPE_LAYOUT_ADJUSTMENT_KEY;
+            keyboardHeightRatioKey = PreferenceUtil.PREF_LANDSCAPE_KEYBOARD_HEIGHT_RATIO_KEY;
+        } else {
+            keyboardLayoutKey = PreferenceUtil.PREF_PORTRAIT_KEYBOARD_LAYOUT_KEY;
+            inputStyleKey = PreferenceUtil.PREF_PORTRAIT_INPUT_STYLE_KEY;
+            qwertyLayoutForAlphabetKey = PreferenceUtil.PREF_PORTRAIT_QWERTY_LAYOUT_FOR_ALPHABET_KEY;
+            flickSensitivityKey = PreferenceUtil.PREF_PORTRAIT_FLICK_SENSITIVITY_KEY;
+            layoutAdjustmentKey = PreferenceUtil.PREF_PORTRAIT_LAYOUT_ADJUSTMENT_KEY;
+            keyboardHeightRatioKey = PreferenceUtil.PREF_PORTRAIT_KEYBOARD_HEIGHT_RATIO_KEY;
+        }
 
-  public boolean isPopupFeedbackEnabled() {
-    return isPopupFeedbackEnabled;
-  }
+        // Don't apply pref_portrait_keyboard_settings_for_landscape for fullscreen mode.
+        String fullscreenKey = (deviceOrientation == Configuration.ORIENTATION_LANDSCAPE)
+                ? PreferenceUtil.PREF_LANDSCAPE_FULLSCREEN_KEY
+                : PreferenceUtil.PREF_PORTRAIT_FULLSCREEN_KEY;
 
-  public KeyboardLayout getKeyboardLayout() {
-    return keyboardLayout;
-  }
+        keyboardLayout = PreferenceUtil.getEnum(
+                sharedPreferences, keyboardLayoutKey,
+                KeyboardLayout.class, KeyboardLayout.TWELVE_KEYS, KeyboardLayout.GODAN);
+        inputStyle = PreferenceUtil.getEnum(
+                sharedPreferences, inputStyleKey,
+                InputStyle.class, InputStyle.TOGGLE_FLICK);
+        qwertyLayoutForAlphabet =
+                sharedPreferences.getBoolean(qwertyLayoutForAlphabetKey, false);
+        // On large screen device, pref_portrait_fullscreen_key and
+        // pref_landscape_fullscreen_key are omitted
+        // so below default value "false" is applied.
+        fullscreenMode =
+                sharedPreferences.getBoolean(fullscreenKey, false);
+        flickSensitivity = sharedPreferences.getInt(flickSensitivityKey, 0);
 
-  public InputStyle getInputStyle() {
-    return inputStyle;
-  }
+        emojiProviderType = PreferenceUtil.getEnum(
+                sharedPreferences, PreferenceUtil.PREF_EMOJI_PROVIDER_TYPE, EmojiProviderType.class,
+                EmojiProviderType.NONE);
 
-  public boolean isQwertyLayoutForAlphabet() {
-    return qwertyLayoutForAlphabet;
-  }
+        hardwareKeyMap = PreferenceUtil.getEnum(
+                sharedPreferences, PreferenceUtil.PREF_HARDWARE_KEYMAP, HardwareKeyMap.class,
+                HardwareKeyMap.DEFAULT);
+        skinType = PreferenceUtil.getEnum(
+                sharedPreferences, resources.getString(R.string.pref_skin_type_key),
+                SkinType.class, SkinType.valueOf(resources.getString(R.string.pref_skin_type_default)));
+        layoutAdjustment = PreferenceUtil.getEnum(
+                sharedPreferences, layoutAdjustmentKey, LayoutAdjustment.class, LayoutAdjustment.FILL);
+        keyboardHeightRatio = sharedPreferences.getInt(keyboardHeightRatioKey, 100);
+    }
 
-  public boolean isFullscreenMode() {
-    return fullscreenMode;
-  }
+    public boolean isHapticFeedbackEnabled() {
+        return isHapticFeedbackEnabled;
+    }
 
-  public int getFlickSensitivity() {
-    return flickSensitivity;
-  }
+    public long getHapticFeedbackDuration() {
+        return hapticFeedbackDuration;
+    }
 
-  public EmojiProviderType getEmojiProviderType() {
-    return emojiProviderType;
-  }
+    public boolean isSoundFeedbackEnabled() {
+        return isSoundFeedbackEnabled;
+    }
 
-  public HardwareKeyMap getHardwareKeyMap() {
-    return hardwareKeyMap;
-  }
+    public int getSoundFeedbackVolume() {
+        return soundFeedbackVolume;
+    }
 
-  public SkinType getSkinType() {
-    return skinType;
-  }
+    public boolean isPopupFeedbackEnabled() {
+        return isPopupFeedbackEnabled;
+    }
 
-  public boolean isMicrophoneButtonEnabled() {
-    return isMicrophoneButtonEnabled;
-  }
+    public KeyboardLayout getKeyboardLayout() {
+        return keyboardLayout;
+    }
 
-  public LayoutAdjustment getLayoutAdjustment() {
-    return layoutAdjustment;
-  }
+    public InputStyle getInputStyle() {
+        return inputStyle;
+    }
 
-  public int getKeyboardHeightRatio() {
-    return keyboardHeightRatio;
-  }
+    public boolean isQwertyLayoutForAlphabet() {
+        return qwertyLayoutForAlphabet;
+    }
+
+    public boolean isFullscreenMode() {
+        return fullscreenMode;
+    }
+
+    public int getFlickSensitivity() {
+        return flickSensitivity;
+    }
+
+    public EmojiProviderType getEmojiProviderType() {
+        return emojiProviderType;
+    }
+
+    public HardwareKeyMap getHardwareKeyMap() {
+        return hardwareKeyMap;
+    }
+
+    public SkinType getSkinType() {
+        return skinType;
+    }
+
+    public boolean isMicrophoneButtonEnabled() {
+        return isMicrophoneButtonEnabled;
+    }
+
+    public LayoutAdjustment getLayoutAdjustment() {
+        return layoutAdjustment;
+    }
+
+    public int getKeyboardHeightRatio() {
+        return keyboardHeightRatio;
+    }
 }

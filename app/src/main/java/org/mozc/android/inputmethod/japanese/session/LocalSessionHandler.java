@@ -29,16 +29,15 @@
 
 package org.mozc.android.inputmethod.japanese.session;
 
-import io.github.lee0701.mozc.custom.MozcLog;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Command;
+import android.content.Context;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager.NameNotFoundException;
 
 import com.google.android.apps.inputmethod.libs.mozc.session.MozcJNI;
 import com.google.common.base.Preconditions;
 import com.google.protobuf.InvalidProtocolBufferException;
 
-import android.content.Context;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager.NameNotFoundException;
+import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Command;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -48,79 +47,81 @@ import java.io.OutputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import io.github.lee0701.mozc.custom.MozcLog;
+
 /**
  * Concrete SessionHandler. Calls JNI.
  *
  */
 class LocalSessionHandler implements SessionHandler {
 
-  private static final String USER_PROFILE_DIRECTORY_NAME = ".mozc";
-  // Built using:
-  // bazelisk build --config oss_linux data_manager/oss:mozc_dataset_for_oss
-  private static final String DATA_FILE_NAME = "mozc.data";
+    private static final String USER_PROFILE_DIRECTORY_NAME = ".mozc";
+    // Built using:
+    // bazelisk build --config oss_linux data_manager/oss:mozc_dataset_for_oss
+    private static final String DATA_FILE_NAME = "mozc.data";
 
-  @Override
-  public void initialize(Context context) {
-    try {
-      ApplicationInfo info = Preconditions.checkNotNull(context).getApplicationInfo();
-
-      // Ensure the user profile directory exists.
-      File userProfileDirectory = new File(info.dataDir, USER_PROFILE_DIRECTORY_NAME);
-      if (!userProfileDirectory.exists()) {
-        // No profile directory is found. Create the one.
-        if (!userProfileDirectory.mkdirs()) {
-          // Failed to create a directory. The mozc conversion engine will be able to run
-          // even in this case, but no persistent data (e.g. user history, user dictionary)
-          // will be stored, so some fuctions using them won't work well.
-          MozcLog.e(
-              "Failed to create user profile directory: " + userProfileDirectory.getAbsolutePath());
-        }
-      }
-
-      // Get Java package's version name, to check the version consistency with libmozc.so
-      // Note that obtained version name is suffixed by android architecture (e.g., -arm).
-      String versionName =
-          context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName;
-      Matcher matcher = Pattern.compile("^(\\d+\\.\\d+\\.\\d+\\.\\d+)-\\w+$").matcher(versionName);
-      if (!matcher.matches()) {
-        throw new RuntimeException("Invalid version name: " + versionName);
-      }
-
-      File cachedDataPath = new File(context.getCacheDir(), DATA_FILE_NAME);
-      if(!cachedDataPath.exists()) {
+    @Override
+    public void initialize(Context context) {
         try {
-          InputStream is = context.getAssets().open(DATA_FILE_NAME);
-          int size = is.available();
-          byte[] buffer = new byte[size];
-          is.read(buffer);
-          is.close();
-          OutputStream os = new FileOutputStream(cachedDataPath);
-          os.write(buffer);
-          os.close();
-        } catch (IOException e) {
-          throw new RuntimeException("Cannot copy Mozc data file to: " + cachedDataPath.getAbsolutePath());
+            ApplicationInfo info = Preconditions.checkNotNull(context).getApplicationInfo();
+
+            // Ensure the user profile directory exists.
+            File userProfileDirectory = new File(info.dataDir, USER_PROFILE_DIRECTORY_NAME);
+            if (!userProfileDirectory.exists()) {
+                // No profile directory is found. Create the one.
+                if (!userProfileDirectory.mkdirs()) {
+                    // Failed to create a directory. The mozc conversion engine will be able to run
+                    // even in this case, but no persistent data (e.g. user history, user dictionary)
+                    // will be stored, so some fuctions using them won't work well.
+                    MozcLog.e(
+                            "Failed to create user profile directory: " + userProfileDirectory.getAbsolutePath());
+                }
+            }
+
+            // Get Java package's version name, to check the version consistency with libmozc.so
+            // Note that obtained version name is suffixed by android architecture (e.g., -arm).
+            String versionName =
+                    context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName;
+            Matcher matcher = Pattern.compile("^(\\d+\\.\\d+\\.\\d+\\.\\d+)-\\w+$").matcher(versionName);
+            if (!matcher.matches()) {
+                throw new RuntimeException("Invalid version name: " + versionName);
+            }
+
+            File cachedDataPath = new File(context.getCacheDir(), DATA_FILE_NAME);
+            if (!cachedDataPath.exists()) {
+                try {
+                    InputStream is = context.getAssets().open(DATA_FILE_NAME);
+                    int size = is.available();
+                    byte[] buffer = new byte[size];
+                    is.read(buffer);
+                    is.close();
+                    OutputStream os = new FileOutputStream(cachedDataPath);
+                    os.write(buffer);
+                    os.close();
+                } catch (IOException e) {
+                    throw new RuntimeException("Cannot copy Mozc data file to: " + cachedDataPath.getAbsolutePath());
+                }
+            }
+
+            // Load the shared object.
+            MozcJNI.load(userProfileDirectory.getAbsolutePath(), cachedDataPath.getAbsolutePath(), matcher.group(1));
+        } catch (NameNotFoundException e) {
+            throw new RuntimeException(e);
         }
-      }
-
-      // Load the shared object.
-      MozcJNI.load(userProfileDirectory.getAbsolutePath(), cachedDataPath.getAbsolutePath(), matcher.group(1));
-    } catch (NameNotFoundException e) {
-      throw new RuntimeException(e);
     }
-  }
 
-  @Override
-  public Command evalCommand(Command command) {
-    byte[] inBytes = Preconditions.checkNotNull(command).toByteArray();
-    byte[] outBytes = null;
-    outBytes = MozcJNI.evalCommand(inBytes);
-    try {
-      return Command.parseFrom(outBytes);
-    } catch (InvalidProtocolBufferException e) {
-      MozcLog.w("InvalidProtocolBufferException is thrown."
-          + "We can do nothing so just return default instance.");
-      MozcLog.w(e.toString());
-      return Command.getDefaultInstance();
+    @Override
+    public Command evalCommand(Command command) {
+        byte[] inBytes = Preconditions.checkNotNull(command).toByteArray();
+        byte[] outBytes = null;
+        outBytes = MozcJNI.evalCommand(inBytes);
+        try {
+            return Command.parseFrom(outBytes);
+        } catch (InvalidProtocolBufferException e) {
+            MozcLog.w("InvalidProtocolBufferException is thrown."
+                    + "We can do nothing so just return default instance.");
+            MozcLog.w(e.toString());
+            return Command.getDefaultInstance();
+        }
     }
-  }
 }

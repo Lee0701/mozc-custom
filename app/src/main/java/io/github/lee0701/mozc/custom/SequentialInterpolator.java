@@ -36,100 +36,103 @@ import java.util.List;
 
 /**
  * This interpolator uses registered interpolators sequentially.
- *
+ * <p>
  * If you want an interpolator which has complex interpolation, this class help you.
  *
  */
 class SequentialInterpolator implements Interpolator {
-  static class Builder {
-    private List<Interpolator> interpolators;
-    private List<Float> durations;
-    private List<Float> toValues;
-    private float totalDuration;
-    private Builder() {
-      final int EXPECTED_SIZE = 4;
-      interpolators = new ArrayList<Interpolator>(EXPECTED_SIZE);
-      durations = new ArrayList<Float>(EXPECTED_SIZE);
-      totalDuration = 0f;
-      toValues = new ArrayList<Float>(EXPECTED_SIZE);
+    static class Builder {
+        private final List<Interpolator> interpolators;
+        private final List<Float> durations;
+        private final List<Float> toValues;
+        private float totalDuration;
+
+        private Builder() {
+            final int EXPECTED_SIZE = 4;
+            interpolators = new ArrayList<Interpolator>(EXPECTED_SIZE);
+            durations = new ArrayList<Float>(EXPECTED_SIZE);
+            totalDuration = 0f;
+            toValues = new ArrayList<Float>(EXPECTED_SIZE);
+        }
+
+        /**
+         * Adds internal interpolator.
+         *
+         * @param interpolator the interpolator to be added.
+         * @param duration     the duration ratio which <code>interpolator</code> occupies.
+         *                     Must be 0 or positive value.
+         * @param toValue      the target value to which <code>interpolator</code> targes.
+         *                     The last interpolator's <code>toValue</code> must be 1f.
+         * @return the builder.
+         */
+        Builder add(Interpolator interpolator, float duration, float toValue) {
+            if (interpolator == null) {
+                throw new NullPointerException("interpolator must not be null");
+            }
+            if (duration < 0f) {
+                throw new IllegalArgumentException("duration must be >= 0");
+            }
+            interpolators.add(interpolator);
+            durations.add(duration);
+            toValues.add(toValue);
+            totalDuration += duration;
+            return this;
+        }
+
+        /**
+         * @return Built interpolator.
+         */
+        SequentialInterpolator build() {
+            if (interpolators.isEmpty()) {
+                throw new IllegalArgumentException();
+            }
+            if (toValues.get(toValues.size() - 1) != 1f) {
+                throw new IllegalArgumentException("The last toValue must be 1.0f");
+            }
+            return new SequentialInterpolator(interpolators, durations, totalDuration, toValues);
+        }
+    }
+
+    private final Interpolator[] interpolators;
+    private final Float[] durations;
+    private final Float[] targets;
+    private final float totalDuration;
+
+    private SequentialInterpolator(List<Interpolator> interpolators, List<Float> durations,
+                                   float totalDuration, List<Float> targets) {
+        this.interpolators = interpolators.toArray(new Interpolator[interpolators.size()]);
+        this.durations = durations.toArray(new Float[durations.size()]);
+        this.totalDuration = totalDuration;
+        this.targets = targets.toArray(new Float[targets.size()]);
+    }
+
+    @Override
+    public float getInterpolation(float input) {
+        Interpolator interpolator = null;
+        final float targetDuration = totalDuration * input;
+        float durationSum = 0;
+        float from = 0f;
+        float to = 0f;
+        float modifiedInput = 0f;
+        for (int i = 0; i < interpolators.length; ++i) {
+            float oldDurationSum = durationSum;
+            float duration = durations[i];
+            durationSum += duration;
+            to = targets[i];
+            if (targetDuration <= durationSum) {
+                interpolator = interpolators[i];
+                modifiedInput = (targetDuration - oldDurationSum) / duration;
+                break;
+            }
+            from = to;
+        }
+        return from + (to - from) * interpolator.getInterpolation(modifiedInput);
     }
 
     /**
-     * Adds internal interpolator.
-     * @param interpolator the interpolator to be added.
-     * @param duration the duration ratio which <code>interpolator</code> occupies.
-     *     Must be 0 or positive value.
-     * @param toValue the target value to which <code>interpolator</code> targes.
-     *     The last interpolator's <code>toValue</code> must be 1f.
-     * @return the builder.
+     * @return the builder to build the interpolator.
      */
-    Builder add(Interpolator interpolator, float duration, float toValue) {
-      if (interpolator == null) {
-        throw new NullPointerException("interpolator must not be null");
-      }
-      if (duration < 0f) {
-        throw new IllegalArgumentException("duration must be >= 0");
-      }
-      interpolators.add(interpolator);
-      durations.add(duration);
-      toValues.add(toValue);
-      totalDuration += duration;
-      return this;
+    static Builder newBuilder() {
+        return new Builder();
     }
-    /**
-     * @return Built interpolator.
-     */
-    SequentialInterpolator build() {
-      if (interpolators.isEmpty()) {
-        throw new IllegalArgumentException();
-      }
-      if (toValues.get(toValues.size() - 1) != 1f) {
-        throw new IllegalArgumentException("The last toValue must be 1.0f");
-      }
-      return new SequentialInterpolator(interpolators, durations, totalDuration, toValues);
-    }
-  }
-
-  private final Interpolator[] interpolators;
-  private final Float[] durations;
-  private final Float[] targets;
-  private final float totalDuration;
-
-  private SequentialInterpolator(List<Interpolator> interpolators, List<Float> durations,
-      float totalDuration, List<Float> targets) {
-    this.interpolators = interpolators.toArray(new Interpolator[interpolators.size()]);
-    this.durations = durations.toArray(new Float[durations.size()]);
-    this.totalDuration = totalDuration;
-    this.targets = targets.toArray(new Float[targets.size()]);
-  }
-
-  @Override
-  public float getInterpolation(float input) {
-    Interpolator interpolator = null;
-    final float targetDuration = totalDuration * input;
-    float durationSum = 0;
-    float from = 0f;
-    float to = 0f;
-    float modifiedInput = 0f;
-    for (int i = 0; i < interpolators.length; ++i) {
-      float oldDurationSum = durationSum;
-      float duration = durations[i];
-      durationSum += duration;
-      to = targets[i];
-      if (targetDuration <= durationSum) {
-        interpolator = interpolators[i];
-        modifiedInput = (targetDuration - oldDurationSum) / duration;
-        break;
-      }
-      from = to;
-    }
-    return from + (to - from) * interpolator.getInterpolation(modifiedInput);
-  }
-
-  /**
-   * @return the builder to build the interpolator.
-   */
-  static Builder newBuilder() {
-    return new Builder();
-  }
 }

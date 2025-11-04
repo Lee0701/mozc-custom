@@ -29,11 +29,11 @@
 
 package io.github.lee0701.mozc.custom.preference;
 
-import io.github.lee0701.mozc.custom.util.LauncherIconManagerFactory;
-
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.preference.PreferenceManager;
+
+import io.github.lee0701.mozc.custom.util.LauncherIconManagerFactory;
 
 /**
  * Main Activity class for the fragment based preference UI on Android with API Level &gt;= 11.
@@ -41,34 +41,34 @@ import android.preference.PreferenceManager;
  */
 public class MozcFragmentPreferenceActivity extends MozcFragmentBasePreferenceActivity {
 
-  public MozcFragmentPreferenceActivity() {
-    super(PreferencePage.FLAT);
-  }
+    public MozcFragmentPreferenceActivity() {
+        super(PreferencePage.FLAT);
+    }
 
-  private final OnSharedPreferenceChangeListener sharedPreferenceChangeListener =
-      new OnSharedPreferenceChangeListener() {
-        @Override
-        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-          if (PreferenceUtil.PREF_LAUNCHER_ICON_VISIBILITY_KEY.equals(key)) {
-            LauncherIconManagerFactory.getDefaultInstance()
-                .updateLauncherIconVisibility(MozcFragmentPreferenceActivity.this);
-          }
-        }
-      };
+    private final OnSharedPreferenceChangeListener sharedPreferenceChangeListener =
+            new OnSharedPreferenceChangeListener() {
+                @Override
+                public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+                    if (PreferenceUtil.PREF_LAUNCHER_ICON_VISIBILITY_KEY.equals(key)) {
+                        LauncherIconManagerFactory.getDefaultInstance()
+                                .updateLauncherIconVisibility(MozcFragmentPreferenceActivity.this);
+                    }
+                }
+            };
 
-  @Override
-  protected void onResume() {
-    super.onResume();
-    PreferenceManager
-        .getDefaultSharedPreferences(this)
-        .registerOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
-  }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        PreferenceManager
+                .getDefaultSharedPreferences(this)
+                .registerOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
+    }
 
-  @Override
-  protected void onPause() {
-    PreferenceManager
-        .getDefaultSharedPreferences(this)
-        .unregisterOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
-    super.onPause();
-  }
+    @Override
+    protected void onPause() {
+        PreferenceManager
+                .getDefaultSharedPreferences(this)
+                .unregisterOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
+        super.onPause();
+    }
 }

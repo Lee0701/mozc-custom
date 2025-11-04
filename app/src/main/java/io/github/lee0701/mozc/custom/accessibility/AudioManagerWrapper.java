@@ -29,10 +29,10 @@
 
 package io.github.lee0701.mozc.custom.accessibility;
 
-import com.google.common.base.Preconditions;
-
 import android.content.Context;
 import android.media.AudioManager;
+
+import com.google.common.base.Preconditions;
 
 /**
  * Wrapper for {@link AudioManager}.
@@ -41,19 +41,19 @@ import android.media.AudioManager;
  */
 class AudioManagerWrapper {
 
-  private final AudioManager manager;
+    private final AudioManager manager;
 
-  AudioManagerWrapper(Context context) {
-    this.manager = AudioManager.class.cast(Preconditions.checkNotNull(context)
-        .getSystemService(Context.AUDIO_SERVICE));
-  }
+    AudioManagerWrapper(Context context) {
+        this.manager = (AudioManager) Preconditions.checkNotNull(context)
+                .getSystemService(Context.AUDIO_SERVICE);
+    }
 
-  public boolean isBluetoothA2dpOn() {
-    return manager.isBluetoothA2dpOn();
-  }
+    public boolean isBluetoothA2dpOn() {
+        return manager.isBluetoothA2dpOn();
+    }
 
-  @SuppressWarnings("deprecation")
-  public boolean isWiredHeadsetOn() {
-    return manager.isWiredHeadsetOn();
-  }
+    @SuppressWarnings("deprecation")
+    public boolean isWiredHeadsetOn() {
+        return manager.isWiredHeadsetOn();
+    }
 }

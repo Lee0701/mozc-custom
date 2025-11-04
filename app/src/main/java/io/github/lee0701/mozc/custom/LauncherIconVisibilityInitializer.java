@@ -29,28 +29,28 @@
 
 package io.github.lee0701.mozc.custom;
 
-import io.github.lee0701.mozc.custom.util.LauncherIconManagerFactory;
-
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+
+import io.github.lee0701.mozc.custom.util.LauncherIconManagerFactory;
 
 /**
  * A broadcast receiver to initialize launcher icon's visibility.
  */
 public class LauncherIconVisibilityInitializer extends BroadcastReceiver {
 
-  @Override
-  public void onReceive(Context context, Intent intent) {
-    if (shouldHandle(intent)) {
-      LauncherIconManagerFactory.getDefaultInstance().updateLauncherIconVisibility(context);
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        if (shouldHandle(intent)) {
+            LauncherIconManagerFactory.getDefaultInstance().updateLauncherIconVisibility(context);
+        }
     }
-  }
 
-  private boolean shouldHandle(Intent intent) {
-    String action = intent.getAction();
-    return "android.intent.action.BOOT_COMPLETED".equals(action)
-           || "android.intent.action.MY_PACKAGE_REPLACED".equals(action)
-           || "android.intent.action.USER_INITIALIZE".equals(action);
-  }
+    private boolean shouldHandle(Intent intent) {
+        String action = intent.getAction();
+        return "android.intent.action.BOOT_COMPLETED".equals(action)
+                || "android.intent.action.MY_PACKAGE_REPLACED".equals(action)
+                || "android.intent.action.USER_INITIALIZE".equals(action);
+    }
 }

@@ -29,8 +29,6 @@
 
 package io.github.lee0701.mozc.custom.mushroom;
 
-import io.github.lee0701.mozc.custom.R;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -48,6 +46,8 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import io.github.lee0701.mozc.custom.R;
+
 /**
  * This is the activity to select a Mushroom application to be launched.
  * Also, this class proxies the {@code replace_key} between MozcService and
@@ -56,85 +56,85 @@ import android.widget.TextView;
  */
 public class MushroomSelectionActivity extends Activity {
 
-  /**
-   * ListAdapter to use custom view (Application Icon followed by Application Name)
-   * for ListView entry.
-   */
-  static class MushroomApplicationListAdapter extends ArrayAdapter<ResolveInfo> {
-    MushroomApplicationListAdapter(Context context) {
-      super(context, 0, 0, MushroomUtil.getMushroomApplicationList(context.getPackageManager()));
+    /**
+     * ListAdapter to use custom view (Application Icon followed by Application Name)
+     * for ListView entry.
+     */
+    static class MushroomApplicationListAdapter extends ArrayAdapter<ResolveInfo> {
+        MushroomApplicationListAdapter(Context context) {
+            super(context, 0, 0, MushroomUtil.getMushroomApplicationList(context.getPackageManager()));
+        }
+
+        @Override
+        public View getView(int position, View contentView, ViewGroup parent) {
+            if (contentView == null) {
+                LayoutInflater inflater = LayoutInflater.from(getContext());
+                contentView = inflater.inflate(R.layout.mushroom_selection_dialog_entry, parent, false);
+            }
+
+            // Set appropriate application icon and its name.
+            PackageManager packageManager = getContext().getPackageManager();
+            ResolveInfo resolveInfo = getItem(position);
+            ImageView icon =
+                    (ImageView) contentView.findViewById(R.id.mushroom_application_icon);
+            icon.setImageDrawable(resolveInfo.loadIcon(packageManager));
+            TextView text =
+                    (TextView) contentView.findViewById(R.id.mushroom_application_label);
+            text.setText(resolveInfo.loadLabel(packageManager));
+            return contentView;
+        }
+    }
+
+    /**
+     * ClickListener to launch the target activity.
+     */
+    static class MushroomApplicationListClickListener implements OnItemClickListener {
+        private final Activity activity;
+
+        MushroomApplicationListClickListener(Activity activity) {
+            this.activity = activity;
+        }
+
+        @Override
+        public void onItemClick(AdapterView<?> adapter, View view, int position, long id) {
+            MushroomUtil.clearProxy();
+            ResolveInfo resolveInfo = (ResolveInfo) adapter.getItemAtPosition(position);
+            ActivityInfo activityInfo = resolveInfo.activityInfo;
+            activity.startActivityForResult(
+                    MushroomUtil.createMushroomLaunchingIntent(
+                            activityInfo.packageName, activityInfo.name,
+                            MushroomUtil.getReplaceKey(activity.getIntent())),
+                    REQUEST_CODE);
+        }
+    }
+
+    static final int REQUEST_CODE = 1;
+
+    @Override
+    protected void onCreate(Bundle savedInstance) {
+        super.onCreate(savedInstance);
+        setContentView(R.layout.mushroom_selection_dialog);
+
+        ListView view = (ListView) findViewById(R.id.mushroom_selection_list_view);
+        view.setOnItemClickListener(new MushroomApplicationListClickListener(this));
     }
 
     @Override
-    public View getView(int position, View contentView, ViewGroup parent) {
-      if(contentView == null) {
-        LayoutInflater inflater = LayoutInflater.from(getContext());
-        contentView = inflater.inflate(R.layout.mushroom_selection_dialog_entry, parent, false);
-      }
+    protected void onResume() {
+        super.onResume();
 
-      // Set appropriate application icon and its name.
-      PackageManager packageManager = getContext().getPackageManager();
-      ResolveInfo resolveInfo = getItem(position);
-      ImageView icon =
-          ImageView.class.cast(contentView.findViewById(R.id.mushroom_application_icon));
-      icon.setImageDrawable(resolveInfo.loadIcon(packageManager));
-      TextView text =
-          TextView.class.cast(contentView.findViewById(R.id.mushroom_application_label));
-      text.setText(resolveInfo.loadLabel(packageManager));
-      return contentView;
-    }
-  }
-
-  /**
-   * ClickListener to launch the target activity.
-   */
-  static class MushroomApplicationListClickListener implements OnItemClickListener {
-    private Activity activity;
-
-    MushroomApplicationListClickListener(Activity activity) {
-      this.activity = activity;
+        // Reset application list for every onResume.
+        // It is because this activity is launched in singleTask mode, so that the onCreate may be
+        // skipped for second (or later) launching.
+        ListView view = (ListView) findViewById(R.id.mushroom_selection_list_view);
+        view.setAdapter(new MushroomApplicationListAdapter(this));
     }
 
     @Override
-    public void onItemClick(AdapterView<?> adapter, View view, int position, long id) {
-      MushroomUtil.clearProxy();
-      ResolveInfo resolveInfo = ResolveInfo.class.cast(adapter.getItemAtPosition(position));
-      ActivityInfo activityInfo = resolveInfo.activityInfo;
-      activity.startActivityForResult(
-          MushroomUtil.createMushroomLaunchingIntent(
-              activityInfo.packageName, activityInfo.name,
-              MushroomUtil.getReplaceKey(activity.getIntent())),
-          REQUEST_CODE);
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
+            MushroomUtil.sendReplaceKey(getIntent(), data);
+        }
+        finish();
     }
-  }
-
-  static final int REQUEST_CODE = 1;
-
-  @Override
-  protected void onCreate(Bundle savedInstance) {
-    super.onCreate(savedInstance);
-    setContentView(R.layout.mushroom_selection_dialog);
-
-    ListView view = ListView.class.cast(findViewById(R.id.mushroom_selection_list_view));
-    view.setOnItemClickListener(new MushroomApplicationListClickListener(this));
-  }
-
-  @Override
-  protected void onResume() {
-    super.onResume();
-
-    // Reset application list for every onResume.
-    // It is because this activity is launched in singleTask mode, so that the onCreate may be
-    // skipped for second (or later) launching.
-    ListView view = ListView.class.cast(findViewById(R.id.mushroom_selection_list_view));
-    view.setAdapter(new MushroomApplicationListAdapter(this));
-  }
-
-  @Override
-  protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-    if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
-      MushroomUtil.sendReplaceKey(getIntent(), data);
-    }
-    finish();
-  }
 }

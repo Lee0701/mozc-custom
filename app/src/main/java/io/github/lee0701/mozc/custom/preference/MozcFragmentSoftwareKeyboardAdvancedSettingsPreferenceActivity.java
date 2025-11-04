@@ -34,17 +34,17 @@ package io.github.lee0701.mozc.custom.preference;
  *
  */
 public class MozcFragmentSoftwareKeyboardAdvancedSettingsPreferenceActivity
-    extends MozcFragmentBasePreferenceActivity {
-  public MozcFragmentSoftwareKeyboardAdvancedSettingsPreferenceActivity() {
-    super(PreferencePage.SOFTWARE_KEYBOARD);
-  }
+        extends MozcFragmentBasePreferenceActivity {
+    public MozcFragmentSoftwareKeyboardAdvancedSettingsPreferenceActivity() {
+        super(PreferencePage.SOFTWARE_KEYBOARD);
+    }
 
-  @Override
-  protected void onPause() {
-    super.onPause();
-    // Probably, it'll be slightly confusing if the software keyboard advanced settings preference
-    // is shown when a user restart the task.
-    // So, finish the activity here.
-    finish();
-  }
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // Probably, it'll be slightly confusing if the software keyboard advanced settings preference
+        // is shown when a user restart the task.
+        // So, finish the activity here.
+        finish();
+    }
 }

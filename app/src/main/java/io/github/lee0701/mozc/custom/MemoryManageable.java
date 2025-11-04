@@ -34,11 +34,11 @@ package io.github.lee0701.mozc.custom;
  */
 public interface MemoryManageable {
 
-  /**
-   * Trims its memory if possible.
-   *
-   * <p>CONTRACT: It's guaranteed that the window is hidden.
-   * Therefore all the UI relating resources can be released if they can be regenerated.
-   */
-  void trimMemory();
+    /**
+     * Trims its memory if possible.
+     *
+     * <p>CONTRACT: It's guaranteed that the window is hidden.
+     * Therefore all the UI relating resources can be released if they can be regenerated.
+     */
+    void trimMemory();
 }

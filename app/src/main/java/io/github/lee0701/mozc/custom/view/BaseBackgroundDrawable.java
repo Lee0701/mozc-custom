@@ -36,57 +36,59 @@ import android.graphics.drawable.Drawable;
 
 /**
  * The basic implementation which is shared by drawables for background.
- *
+ * <p>
  * Currently this class supports padding related stuff.
  */
 abstract class BaseBackgroundDrawable extends Drawable {
-  private final int leftPadding;
-  private final int topPadding;
-  private final int rightPadding;
-  private final int bottomPadding;
+    private final int leftPadding;
+    private final int topPadding;
+    private final int rightPadding;
+    private final int bottomPadding;
 
-  private Rect canvasRect = new Rect();
+    private final Rect canvasRect = new Rect();
 
-  BaseBackgroundDrawable(int leftPadding, int topPadding, int rightPadding, int bottomPadding) {
-    this.leftPadding = leftPadding;
-    this.topPadding = topPadding;
-    this.rightPadding = rightPadding;
-    this.bottomPadding = bottomPadding;
-  }
+    BaseBackgroundDrawable(int leftPadding, int topPadding, int rightPadding, int bottomPadding) {
+        this.leftPadding = leftPadding;
+        this.topPadding = topPadding;
+        this.rightPadding = rightPadding;
+        this.bottomPadding = bottomPadding;
+    }
 
-  @Override
-  protected void onBoundsChange(Rect bounds) {
-    super.onBoundsChange(bounds);
-    canvasRect.set(bounds.left + leftPadding,
-                   bounds.top + topPadding,
-                   bounds.right - rightPadding,
-                   bounds.bottom - bottomPadding);
-  }
+    @Override
+    protected void onBoundsChange(Rect bounds) {
+        super.onBoundsChange(bounds);
+        canvasRect.set(bounds.left + leftPadding,
+                bounds.top + topPadding,
+                bounds.right - rightPadding,
+                bounds.bottom - bottomPadding);
+    }
 
-  protected boolean isCanvasRectEmpty() {
-    return canvasRect.isEmpty();
-  }
+    protected boolean isCanvasRectEmpty() {
+        return canvasRect.isEmpty();
+    }
 
-  /**
-   * @return the region without padding.
-   */
-  protected Rect getCanvasRect() {
-    return new Rect(canvasRect);
-  }
+    /**
+     * @return the region without padding.
+     */
+    protected Rect getCanvasRect() {
+        return new Rect(canvasRect);
+    }
 
-  /** Supporting alpha channel. */
-  @Override
-  public int getOpacity() {
-    return PixelFormat.TRANSLUCENT;
-  }
+    /**
+     * Supporting alpha channel.
+     */
+    @Override
+    public int getOpacity() {
+        return PixelFormat.TRANSLUCENT;
+    }
 
-  @Override
-  public void setAlpha(int alpha) {
-    // Do nothing.
-  }
+    @Override
+    public void setAlpha(int alpha) {
+        // Do nothing.
+    }
 
-  @Override
-  public void setColorFilter(ColorFilter cf) {
-    // Do nothing.
-  }
+    @Override
+    public void setColorFilter(ColorFilter cf) {
+        // Do nothing.
+    }
 }

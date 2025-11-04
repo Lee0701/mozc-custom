@@ -29,21 +29,21 @@
 
 package io.github.lee0701.mozc.custom;
 
-import io.github.lee0701.mozc.custom.model.SymbolCandidateStorage.SymbolHistoryStorage;
-import io.github.lee0701.mozc.custom.preference.MozcFragmentPreferenceActivity;
-import io.github.lee0701.mozc.custom.ui.MenuDialog.MenuDialogListener;
-import io.github.lee0701.mozc.custom.util.ImeSwitcherFactory.ImeSwitcher;
+import android.app.Activity;
+import android.content.Context;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 
-import android.app.Activity;
-import android.content.Context;
-import android.os.Build;
+import io.github.lee0701.mozc.custom.model.SymbolCandidateStorage.SymbolHistoryStorage;
+import io.github.lee0701.mozc.custom.preference.MozcFragmentPreferenceActivity;
+import io.github.lee0701.mozc.custom.ui.MenuDialog.MenuDialogListener;
+import io.github.lee0701.mozc.custom.util.ImeSwitcherFactory.ImeSwitcher;
 
 /**
  * Factory class for dependency.
- *
+ * <p>
  * Here "Depenency" is for "Dependency Injection".
  * Dependency is resolved on runtime.
  * For example preference activity is dependent on the API level.
@@ -53,75 +53,76 @@ import android.os.Build;
 public class DependencyFactory {
 
 
-  /**
-   * Dependencies.
-   */
-  public interface Dependency {
+    /**
+     * Dependencies.
+     */
+    public interface Dependency {
+
+        /**
+         * Creates a ViewManager.
+         */
+        ViewManagerInterface createViewManager(
+                Context context,
+                ViewEventListener listener,
+                SymbolHistoryStorage symbolHistoryStorage,
+                ImeSwitcher imeSwitcher,
+                MenuDialogListener menuDialogListener);
+
+        /**
+         * Returns a class for preference activity.
+         */
+        Class<? extends Activity> getPreferenceActivityClass();
+
+        boolean isWelcomeActivityPreferrable();
+    }
 
     /**
-     * Creates a ViewManager.
+     * Dependency for standard (with fragment) UI.
      */
-    public ViewManagerInterface createViewManager(
-        Context context,
-        ViewEventListener listener,
-        SymbolHistoryStorage symbolHistoryStorage,
-        ImeSwitcher imeSwitcher,
-        MenuDialogListener menuDialogListener);
+    @VisibleForTesting
+    static final Dependency TOUCH_FRAGMENT_PREF = new Dependency() {
 
-    /**
-     * Returns a class for preference activity.
-     */
-    public Class<? extends Activity> getPreferenceActivityClass();
+        @Override
+        public ViewManagerInterface createViewManager(Context context, ViewEventListener listener,
+                                                      SymbolHistoryStorage symbolHistoryStorage, ImeSwitcher imeSwitcher,
+                                                      MenuDialogListener menuDialogListener) {
+            return new ViewManager(
+                    Preconditions.checkNotNull(context),
+                    Preconditions.checkNotNull(listener),
+                    Preconditions.checkNotNull(symbolHistoryStorage),
+                    Preconditions.checkNotNull(imeSwitcher),
+                    Preconditions.checkNotNull(menuDialogListener));
+        }
 
-    public boolean isWelcomeActivityPreferrable();
-  }
+        @Override
+        public Class<? extends Activity> getPreferenceActivityClass() {
+            return MozcFragmentPreferenceActivity.class;
+        }
 
-  /**
-   * Dependency for standard (with fragment) UI.
-   */
-  @VisibleForTesting
-  static final Dependency TOUCH_FRAGMENT_PREF = new Dependency() {
+        @Override
+        public boolean isWelcomeActivityPreferrable() {
+            return true;
+        }
+    };
 
-    @Override
-    public ViewManagerInterface createViewManager(Context context, ViewEventListener listener,
-        SymbolHistoryStorage symbolHistoryStorage, ImeSwitcher imeSwitcher,
-        MenuDialogListener menuDialogListener) {
-      return new ViewManager(
-          Preconditions.checkNotNull(context),
-          Preconditions.checkNotNull(listener),
-          Preconditions.checkNotNull(symbolHistoryStorage),
-          Preconditions.checkNotNull(imeSwitcher),
-          Preconditions.checkNotNull(menuDialogListener));
+
+    // For testing
+    private static Optional<Dependency> dependencyForTesting = Optional.absent();
+
+    @VisibleForTesting
+    public static void setDependency(Optional<Dependency> dependency) {
+        Preconditions.checkNotNull(dependency);
+        dependencyForTesting = dependency;
     }
 
-    @Override
-    public Class<? extends Activity> getPreferenceActivityClass() {
-      return MozcFragmentPreferenceActivity.class;
+    public static Dependency getDependency(Context context) {
+        Preconditions.checkNotNull(context);
+        if (dependencyForTesting.isPresent()) {
+            return dependencyForTesting.get();
+        }
+        return TOUCH_FRAGMENT_PREF;
     }
 
-    @Override
-    public boolean isWelcomeActivityPreferrable() {
-      return true;
+    private DependencyFactory() {
     }
-  };
-
-
-  // For testing
-  private static Optional<Dependency> dependencyForTesting = Optional.absent();
-
-  @VisibleForTesting
-  public static void setDependency(Optional<Dependency> dependency) {
-    Preconditions.checkNotNull(dependency);
-    dependencyForTesting = dependency;
-  }
-
-  public static Dependency getDependency(Context context) {
-    Preconditions.checkNotNull(context);
-    if (dependencyForTesting.isPresent()) {
-      return dependencyForTesting.get();
-    }
-    return TOUCH_FRAGMENT_PREF;
-  }
-
-  private DependencyFactory() {}
 }

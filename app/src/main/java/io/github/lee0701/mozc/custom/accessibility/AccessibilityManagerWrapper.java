@@ -29,8 +29,6 @@
 
 package io.github.lee0701.mozc.custom.accessibility;
 
-import com.google.common.base.Preconditions;
-
 import android.accessibilityservice.AccessibilityServiceInfo;
 import android.content.Context;
 import android.content.pm.ServiceInfo;
@@ -39,6 +37,8 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityManager;
 import android.view.accessibility.AccessibilityManager.AccessibilityStateChangeListener;
 import android.view.accessibility.AccessibilityManager.TouchExplorationStateChangeListener;
+
+import com.google.common.base.Preconditions;
 
 import java.util.Collections;
 import java.util.List;
@@ -52,196 +52,205 @@ import java.util.List;
  */
 class AccessibilityManagerWrapper {
 
-  private interface ManagerProxy {
-    boolean addAccessibilityStateChangeListener(AccessibilityStateChangeListener listener);
-    boolean addTouchExplorationStateChangeListener(
-        TouchExplorationStateChangeListener listener);
-    List<ServiceInfo> getAccessibilityServiceList();
-    List<AccessibilityServiceInfo> getEnabledAccessibilityServiceList(int feedbackTypeFlags);
-    List<AccessibilityServiceInfo> getInstalledAccessibilityServiceList();
-    void interrupt();
-    boolean isEnabled();
-    boolean isTouchExplorationEnabled();
-    boolean removeAccessibilityStateChangeListener(
-        AccessibilityStateChangeListener listener);
-    boolean removeTouchExplorationStateChangeListener(
-        TouchExplorationStateChangeListener listener);
-    void sendAccessibilityEvent(AccessibilityEvent event);
-  }
+    private interface ManagerProxy {
+        boolean addAccessibilityStateChangeListener(AccessibilityStateChangeListener listener);
 
-  private static class ManagerLessThan14 implements ManagerProxy {
+        boolean addTouchExplorationStateChangeListener(
+                TouchExplorationStateChangeListener listener);
 
-    protected final AccessibilityManager manager;
+        List<ServiceInfo> getAccessibilityServiceList();
 
-    ManagerLessThan14(AccessibilityManager manager) {
-      this.manager = Preconditions.checkNotNull(manager);
+        List<AccessibilityServiceInfo> getEnabledAccessibilityServiceList(int feedbackTypeFlags);
+
+        List<AccessibilityServiceInfo> getInstalledAccessibilityServiceList();
+
+        void interrupt();
+
+        boolean isEnabled();
+
+        boolean isTouchExplorationEnabled();
+
+        boolean removeAccessibilityStateChangeListener(
+                AccessibilityStateChangeListener listener);
+
+        boolean removeTouchExplorationStateChangeListener(
+                TouchExplorationStateChangeListener listener);
+
+        void sendAccessibilityEvent(AccessibilityEvent event);
     }
 
-    @Override
-    public boolean addAccessibilityStateChangeListener(AccessibilityStateChangeListener listener) {
-      return false;
+    private static class ManagerLessThan14 implements ManagerProxy {
+
+        protected final AccessibilityManager manager;
+
+        ManagerLessThan14(AccessibilityManager manager) {
+            this.manager = Preconditions.checkNotNull(manager);
+        }
+
+        @Override
+        public boolean addAccessibilityStateChangeListener(AccessibilityStateChangeListener listener) {
+            return false;
+        }
+
+        @Override
+        public boolean addTouchExplorationStateChangeListener(
+                TouchExplorationStateChangeListener listener) {
+            return false;
+        }
+
+        @Override
+        public List<AccessibilityServiceInfo> getEnabledAccessibilityServiceList(
+                int feedbackTypeFlags) {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public List<AccessibilityServiceInfo> getInstalledAccessibilityServiceList() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public boolean isTouchExplorationEnabled() {
+            return false;
+        }
+
+        @Override
+        public boolean removeAccessibilityStateChangeListener(
+                AccessibilityStateChangeListener listener) {
+            return false;
+        }
+
+        @Override
+        public boolean removeTouchExplorationStateChangeListener(
+                TouchExplorationStateChangeListener listener) {
+            return false;
+        }
+
+        @SuppressWarnings("deprecation")
+        @Override
+        public List<ServiceInfo> getAccessibilityServiceList() {
+            return manager.getAccessibilityServiceList();
+        }
+
+        @Override
+        public void interrupt() {
+            manager.interrupt();
+        }
+
+        @Override
+        public boolean isEnabled() {
+            return manager.isEnabled();
+        }
+
+        @Override
+        public void sendAccessibilityEvent(AccessibilityEvent event) {
+            manager.sendAccessibilityEvent(event);
+        }
     }
 
-    @Override
-    public boolean addTouchExplorationStateChangeListener(
-        TouchExplorationStateChangeListener listener) {
-      return false;
+    private static class ManagerFrom14To18 extends ManagerLessThan14 {
+
+        ManagerFrom14To18(AccessibilityManager manager) {
+            super(manager);
+        }
+
+        @Override
+        public boolean addAccessibilityStateChangeListener(AccessibilityStateChangeListener listener) {
+            return manager.addAccessibilityStateChangeListener(listener);
+        }
+
+        @Override
+        public List<AccessibilityServiceInfo> getEnabledAccessibilityServiceList(
+                int feedbackTypeFlags) {
+            return manager.getEnabledAccessibilityServiceList(feedbackTypeFlags);
+        }
+
+        @Override
+        public List<AccessibilityServiceInfo> getInstalledAccessibilityServiceList() {
+            return manager.getInstalledAccessibilityServiceList();
+        }
+
+        @Override
+        public boolean isTouchExplorationEnabled() {
+            return manager.isTouchExplorationEnabled();
+        }
+
+        @Override
+        public boolean removeAccessibilityStateChangeListener(
+                AccessibilityStateChangeListener listener) {
+            return manager.removeAccessibilityStateChangeListener(listener);
+        }
     }
 
-    @Override
-    public List<AccessibilityServiceInfo> getEnabledAccessibilityServiceList(
-        int feedbackTypeFlags) {
-      return Collections.emptyList();
+    private static class ManagerFrom19 extends ManagerFrom14To18 {
+
+        ManagerFrom19(AccessibilityManager manager) {
+            super(manager);
+        }
+
+        @Override
+        public boolean addTouchExplorationStateChangeListener(
+                TouchExplorationStateChangeListener listener) {
+            return manager.addTouchExplorationStateChangeListener(listener);
+        }
+
+        @Override
+        public boolean removeTouchExplorationStateChangeListener(
+                TouchExplorationStateChangeListener listener) {
+            return manager.removeTouchExplorationStateChangeListener(listener);
+        }
     }
 
-    @Override
-    public List<AccessibilityServiceInfo> getInstalledAccessibilityServiceList() {
-      return Collections.emptyList();
+    private final ManagerProxy managerProxy;
+
+    AccessibilityManagerWrapper(Context context) {
+        AccessibilityManager manager = (AccessibilityManager) Preconditions.checkNotNull(context)
+                .getSystemService(Context.ACCESSIBILITY_SERVICE);
+        if (Build.VERSION.SDK_INT < 14) {
+            managerProxy = new ManagerLessThan14(manager);
+        } else if (Build.VERSION.SDK_INT < 19) {
+            managerProxy = new ManagerFrom14To18(manager);
+        } else {
+            managerProxy = new ManagerFrom19(manager);
+        }
     }
 
-    @Override
-    public boolean isTouchExplorationEnabled() {
-      return false;
-    }
-
-    @Override
-    public boolean removeAccessibilityStateChangeListener(
-        AccessibilityStateChangeListener listener) {
-      return false;
-    }
-
-    @Override
-    public boolean removeTouchExplorationStateChangeListener(
-        TouchExplorationStateChangeListener listener) {
-      return false;
-    }
-
-    @SuppressWarnings("deprecation")
-    @Override
-    public List<ServiceInfo> getAccessibilityServiceList() {
-      return manager.getAccessibilityServiceList();
-    }
-
-    @Override
-    public void interrupt() {
-      manager.interrupt();
-    }
-
-    @Override
     public boolean isEnabled() {
-      return manager.isEnabled();
+        return managerProxy.isEnabled();
     }
 
-    @Override
-    public void sendAccessibilityEvent(AccessibilityEvent event) {
-      manager.sendAccessibilityEvent(event);
-    }
-  }
-
-  private static class ManagerFrom14To18 extends ManagerLessThan14 {
-
-    ManagerFrom14To18(AccessibilityManager manager) {
-      super(manager);
-    }
-
-    @Override
-    public boolean addAccessibilityStateChangeListener(AccessibilityStateChangeListener listener) {
-      return manager.addAccessibilityStateChangeListener(listener);
-    }
-
-    @Override
-    public List<AccessibilityServiceInfo> getEnabledAccessibilityServiceList(
-        int feedbackTypeFlags) {
-      return manager.getEnabledAccessibilityServiceList(feedbackTypeFlags);
-    }
-
-    @Override
-    public List<AccessibilityServiceInfo> getInstalledAccessibilityServiceList() {
-      return manager.getInstalledAccessibilityServiceList();
-    }
-
-    @Override
     public boolean isTouchExplorationEnabled() {
-      return manager.isTouchExplorationEnabled();
+        return managerProxy.isTouchExplorationEnabled();
     }
 
-    @Override
+    public void sendAccessibilityEvent(AccessibilityEvent event) {
+        managerProxy.sendAccessibilityEvent(event);
+    }
+
+    public void interrupt() {
+        managerProxy.interrupt();
+    }
+
+    @Deprecated
+    public List<ServiceInfo> getAccessibilityServiceList() {
+        return managerProxy.getAccessibilityServiceList();
+    }
+
+    public List<AccessibilityServiceInfo> getInstalledAccessibilityServiceList() {
+        return managerProxy.getInstalledAccessibilityServiceList();
+    }
+
+    public List<AccessibilityServiceInfo> getEnabledAccessibilityServiceList(
+            int feedbackTypeFlags) {
+        return managerProxy.getEnabledAccessibilityServiceList(feedbackTypeFlags);
+    }
+
+    public boolean addAccessibilityStateChangeListener(AccessibilityStateChangeListener listener) {
+        return managerProxy.addAccessibilityStateChangeListener(listener);
+    }
+
     public boolean removeAccessibilityStateChangeListener(
-        AccessibilityStateChangeListener listener) {
-      return manager.removeAccessibilityStateChangeListener(listener);
+            AccessibilityStateChangeListener listener) {
+        return managerProxy.removeAccessibilityStateChangeListener(listener);
     }
-  }
-
-  private static class ManagerFrom19 extends ManagerFrom14To18 {
-
-    ManagerFrom19(AccessibilityManager manager) {
-      super(manager);
-    }
-
-    @Override
-    public boolean addTouchExplorationStateChangeListener(
-        TouchExplorationStateChangeListener listener) {
-      return manager.addTouchExplorationStateChangeListener(listener);
-    }
-
-    @Override
-    public boolean removeTouchExplorationStateChangeListener(
-        TouchExplorationStateChangeListener listener) {
-      return manager.removeTouchExplorationStateChangeListener(listener);
-    }
-  }
-
-  private final ManagerProxy managerProxy;
-
-  AccessibilityManagerWrapper(Context context) {
-    AccessibilityManager manager = AccessibilityManager.class.cast(
-        Preconditions.checkNotNull(context)
-            .getSystemService(Context.ACCESSIBILITY_SERVICE));
-    if (Build.VERSION.SDK_INT < 14) {
-      managerProxy = new ManagerLessThan14(manager);
-    } else if (Build.VERSION.SDK_INT < 19) {
-      managerProxy = new ManagerFrom14To18(manager);
-    } else {
-      managerProxy = new ManagerFrom19(manager);
-    }
-  }
-
-  public boolean isEnabled() {
-    return managerProxy.isEnabled();
-  }
-
-  public boolean isTouchExplorationEnabled() {
-    return managerProxy.isTouchExplorationEnabled();
-  }
-
-  public void sendAccessibilityEvent(AccessibilityEvent event) {
-    managerProxy.sendAccessibilityEvent(event);
-  }
-
-  public void interrupt() {
-    managerProxy.interrupt();
-  }
-
-  @Deprecated
-  public List<ServiceInfo> getAccessibilityServiceList() {
-    return managerProxy.getAccessibilityServiceList();
-  }
-
-  public List<AccessibilityServiceInfo> getInstalledAccessibilityServiceList() {
-    return managerProxy.getInstalledAccessibilityServiceList();
-  }
-
-  public List<AccessibilityServiceInfo> getEnabledAccessibilityServiceList(
-      int feedbackTypeFlags) {
-    return managerProxy.getEnabledAccessibilityServiceList(feedbackTypeFlags);
-  }
-
-  public boolean addAccessibilityStateChangeListener(AccessibilityStateChangeListener listener) {
-    return managerProxy.addAccessibilityStateChangeListener(listener);
-  }
-
-  public boolean removeAccessibilityStateChangeListener(
-      AccessibilityStateChangeListener listener) {
-    return managerProxy.removeAccessibilityStateChangeListener(listener);
-  }
 }

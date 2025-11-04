@@ -48,92 +48,95 @@ import java.util.StringTokenizer;
  */
 public class CandidateDescriptionUtil {
 
-  private static final Set<String> DESCRIPTION_BLACKLIST_SET;
-  static {
-    String[] blacklist = new String[] {
-        "ひらがな",
-        "数字",
-        "丸数字",
-        "大字",
-        "絵文字",
-        "顔文字",
-        "<機種依存>",
-        "捨て仮名",
+    private static final Set<String> DESCRIPTION_BLACKLIST_SET;
+
+    static {
+        String[] blacklist = new String[]{
+                "ひらがな",
+                "数字",
+                "丸数字",
+                "大字",
+                "絵文字",
+                "顔文字",
+                "<機種依存>",
+                "捨て仮名",
+        };
+        DESCRIPTION_BLACKLIST_SET = Collections.unmodifiableSet(
+                new HashSet<String>(Arrays.asList(blacklist)));
+    }
+
+    private static final String[] DESCRIPTION_SUFFIX_BLACKLIST = new String[]{
+            "の旧字体",
+            "の簡易慣用字体",
+            "の印刷標準字体",
+            "の俗字",
+            "の正字",
+            "の本字",
+            "の異体字",
+            "の略字",
+            "の別字",
     };
-    DESCRIPTION_BLACKLIST_SET = Collections.unmodifiableSet(
-        new HashSet<String>(Arrays.asList(blacklist)));
-  }
 
-  private static final String[] DESCRIPTION_SUFFIX_BLACKLIST = new String[] {
-    "の旧字体",
-    "の簡易慣用字体",
-    "の印刷標準字体",
-    "の俗字",
-    "の正字",
-    "の本字",
-    "の異体字",
-    "の略字",
-    "の別字",
-  };
+    private static final Map<String, String> DESCRIPTION_SHORTEN_MAP;
 
-  private static final Map<String, String> DESCRIPTION_SHORTEN_MAP;
-  static {
-    Map<String, String> map = new HashMap<String, String>();
-    map.put("小書き文字", "小書き");
-    map.put("ローマ数字(大文字)", "ローマ数字");
-    map.put("ローマ数字(小文字)", "ローマ数字");
-    DESCRIPTION_SHORTEN_MAP = Collections.unmodifiableMap(map);
-  }
-
-  private CandidateDescriptionUtil() {}
-
-  public static List<String> extractDescriptions(
-      String description, Optional<String> descriptionDelimiter) {
-    Preconditions.checkNotNull(description);
-    Preconditions.checkNotNull(descriptionDelimiter);
-
-    if (description.length() == 0) {
-      // No description is available.
-      return Collections.emptyList();
+    static {
+        Map<String, String> map = new HashMap<String, String>();
+        map.put("小書き文字", "小書き");
+        map.put("ローマ数字(大文字)", "ローマ数字");
+        map.put("ローマ数字(小文字)", "ローマ数字");
+        DESCRIPTION_SHORTEN_MAP = Collections.unmodifiableMap(map);
     }
 
-    if (!descriptionDelimiter.isPresent()) {
-      // If the delimiter is not set, return the description as is.
-      return Collections.singletonList(description);
+    private CandidateDescriptionUtil() {
     }
 
-    // Split the description by delimiter.
-    StringTokenizer tokenizer = new StringTokenizer(description, descriptionDelimiter.get());
-    List<String> result = new ArrayList<String>();
-    while (tokenizer.hasMoreTokens()) {
-      String token = tokenizer.nextToken();
-      if (isEligibleDescriptionFragment(token)) {
-        result.add(shortenDescriptionFragment(token));
-      }
+    public static List<String> extractDescriptions(
+            String description, Optional<String> descriptionDelimiter) {
+        Preconditions.checkNotNull(description);
+        Preconditions.checkNotNull(descriptionDelimiter);
+
+        if (description.length() == 0) {
+            // No description is available.
+            return Collections.emptyList();
+        }
+
+        if (!descriptionDelimiter.isPresent()) {
+            // If the delimiter is not set, return the description as is.
+            return Collections.singletonList(description);
+        }
+
+        // Split the description by delimiter.
+        StringTokenizer tokenizer = new StringTokenizer(description, descriptionDelimiter.get());
+        List<String> result = new ArrayList<String>();
+        while (tokenizer.hasMoreTokens()) {
+            String token = tokenizer.nextToken();
+            if (isEligibleDescriptionFragment(token)) {
+                result.add(shortenDescriptionFragment(token));
+            }
+        }
+
+        return result;
     }
 
-    return result;
-  }
-
-  private static boolean isEligibleDescriptionFragment(String descriptionFragment) {
-    // We'd like to always remove some descriptions because the description fragment frequently
-    // and largely increases the width of a candidate span.
-    // Increased width reduces the number of the candidates which are shown in a screen.
-    // TODO(matsuzakit): Such filtering/optimization should be done in the server side.
-    if (DESCRIPTION_BLACKLIST_SET.contains(descriptionFragment)) {
-      return false;
+    private static boolean isEligibleDescriptionFragment(String descriptionFragment) {
+        // We'd like to always remove some descriptions because the description fragment frequently
+        // and largely increases the width of a candidate span.
+        // Increased width reduces the number of the candidates which are shown in a screen.
+        // TODO(matsuzakit): Such filtering/optimization should be done in the server side.
+        if (DESCRIPTION_BLACKLIST_SET.contains(descriptionFragment)) {
+            return false;
+        }
+        for (String suffix : DESCRIPTION_SUFFIX_BLACKLIST) {
+            if (descriptionFragment.endsWith(suffix)) {
+                return false;
+            }
+        }
+        return true;
     }
-    for (String suffix : DESCRIPTION_SUFFIX_BLACKLIST) {
-      if (descriptionFragment.endsWith(suffix)) {
-        return false;
-      }
-    }
-    return true;
-  }
 
-  private static String shortenDescriptionFragment(String descriptionFragment) {
-    Preconditions.checkNotNull(descriptionFragment);
-    return MoreObjects.firstNonNull(DESCRIPTION_SHORTEN_MAP.get(descriptionFragment),
-                                descriptionFragment);
-  }
+    private static String shortenDescriptionFragment(String descriptionFragment) {
+        Preconditions.checkNotNull(descriptionFragment);
+        return MoreObjects.firstNonNull(DESCRIPTION_SHORTEN_MAP.get(descriptionFragment),
+                descriptionFragment);
+    }
 }

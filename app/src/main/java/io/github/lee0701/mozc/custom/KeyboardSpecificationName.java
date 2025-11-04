@@ -29,64 +29,64 @@
 
 package io.github.lee0701.mozc.custom;
 
-import com.google.common.base.Preconditions;
-
 import android.content.res.Configuration;
+
+import com.google.common.base.Preconditions;
 
 /**
  * Name of keyboard (or keyboard-like-view).
- *
+ * <p>
  * The formatted name is sent to the usage stats server.
  *
  */
 public class KeyboardSpecificationName {
 
-  public final String baseName;
-  public final int major;
-  public final int minor;
-  public final int revision;
-  public KeyboardSpecificationName(String baseName, int major, int minor, int revision) {
-    this.baseName = Preconditions.checkNotNull(baseName);
-    this.major = major;
-    this.minor = minor;
-    this.revision = revision;
-  }
+    public final String baseName;
+    public final int major;
+    public final int minor;
+    public final int revision;
 
-  /**
-   * Get formatted keyboard name based on given parameters.
-   *
-   * The main purpose of the formatted name is collecting usage stats.
-   */
-  public String formattedKeyboardName(Configuration configuration) {
-    Preconditions.checkNotNull(configuration);
-    return new StringBuilder(baseName).append('-')
-                                      .append(major)
-                                      .append('.')
-                                      .append(minor)
-                                      .append('.')
-                                      .append(revision)
-                                      .append('-')
-                                      .append(getDeviceOrientationString(configuration))
-                                      .toString();
-  }
-
-  /**
-   * Returns *Canonical* orientation string, which is used as a part of keyboard name.
-   */
-  @SuppressWarnings("deprecation")
-  public static String getDeviceOrientationString(Configuration configuration) {
-    Preconditions.checkNotNull(configuration);
-    switch (configuration.orientation) {
-      case Configuration.ORIENTATION_PORTRAIT:
-        return "PORTRAIT";
-      case Configuration.ORIENTATION_LANDSCAPE:
-        return "LANDSCAPE";
-      case Configuration.ORIENTATION_SQUARE:
-        return "SQUARE";
-      case Configuration.ORIENTATION_UNDEFINED:
-        return "UNDEFINED";
+    public KeyboardSpecificationName(String baseName, int major, int minor, int revision) {
+        this.baseName = Preconditions.checkNotNull(baseName);
+        this.major = major;
+        this.minor = minor;
+        this.revision = revision;
     }
-    // If none of above is matched to the orientation, we return "UNKNOWN".
-    return "UNKNOWN";
-  }
+
+    /**
+     * Get formatted keyboard name based on given parameters.
+     * <p>
+     * The main purpose of the formatted name is collecting usage stats.
+     */
+    public String formattedKeyboardName(Configuration configuration) {
+        Preconditions.checkNotNull(configuration);
+        return baseName + '-' +
+                major +
+                '.' +
+                minor +
+                '.' +
+                revision +
+                '-' +
+                getDeviceOrientationString(configuration);
+    }
+
+    /**
+     * Returns *Canonical* orientation string, which is used as a part of keyboard name.
+     */
+    @SuppressWarnings("deprecation")
+    public static String getDeviceOrientationString(Configuration configuration) {
+        Preconditions.checkNotNull(configuration);
+        switch (configuration.orientation) {
+            case Configuration.ORIENTATION_PORTRAIT:
+                return "PORTRAIT";
+            case Configuration.ORIENTATION_LANDSCAPE:
+                return "LANDSCAPE";
+            case Configuration.ORIENTATION_SQUARE:
+                return "SQUARE";
+            case Configuration.ORIENTATION_UNDEFINED:
+                return "UNDEFINED";
+        }
+        // If none of above is matched to the orientation, we return "UNKNOWN".
+        return "UNKNOWN";
+    }
 }

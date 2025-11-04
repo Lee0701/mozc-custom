@@ -34,6 +34,7 @@ import android.content.Context;
 import android.content.Intent;
 
 class InputDeviceReceiver extends BroadcastReceiver {
-  @Override
-  public void onReceive(Context context, Intent intent) {}
+    @Override
+    public void onReceive(Context context, Intent intent) {
+    }
 }

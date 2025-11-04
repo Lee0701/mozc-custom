@@ -29,20 +29,20 @@
 
 package io.github.lee0701.mozc.custom.emoji;
 
-import io.github.lee0701.mozc.custom.MozcLog;
-import com.google.common.base.Preconditions;
-
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.os.Build;
 import android.text.Layout.Alignment;
 import android.text.StaticLayout;
 import android.text.TextPaint;
 import android.text.TextUtils;
 
+import com.google.common.base.Preconditions;
+
 import java.util.Arrays;
+
+import io.github.lee0701.mozc.custom.MozcLog;
 
 /**
  * Checker of whether the given string is renderable as a single glyph on the current device or not.
@@ -68,11 +68,17 @@ public class EmojiRenderableChecker {
     private final TextPaint mPaint;
     private final int[] mTargetGlyphPixels;
 
-    /** Measured width of {@code EM_STRING} (width of 'm' glyph). */
+    /**
+     * Measured width of {@code EM_STRING} (width of 'm' glyph).
+     */
     private final float mEmGlyphWidth;
-    /** Measured width of {@code FALLBACK_CHARACTER_STRING} (width of 'Tofu' glyph). */
+    /**
+     * Measured width of {@code FALLBACK_CHARACTER_STRING} (width of 'Tofu' glyph).
+     */
     private final float mFallbackGlyphWidth;
-    /** Bitmap pixels of {@code FALLBACK_CHARACTER_STRING} (pixels of 'Tofu' glyph). */
+    /**
+     * Bitmap pixels of {@code FALLBACK_CHARACTER_STRING} (pixels of 'Tofu' glyph).
+     */
     private final int[] mFallbackGlyphPixels;
 
     public EmojiRenderableChecker() {

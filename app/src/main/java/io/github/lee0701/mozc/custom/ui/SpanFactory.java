@@ -29,58 +29,66 @@
 
 package io.github.lee0701.mozc.custom.ui;
 
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidateWindow.CandidateWord;
-import io.github.lee0701.mozc.custom.ui.CandidateLayout.Span;
-import io.github.lee0701.mozc.custom.util.CandidateDescriptionUtil;
+import android.graphics.Paint;
+
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
-import android.graphics.Paint;
+import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidateWindow.CandidateWord;
 
 import java.util.List;
+
+import io.github.lee0701.mozc.custom.ui.CandidateLayout.Span;
+import io.github.lee0701.mozc.custom.util.CandidateDescriptionUtil;
 
 /**
  * Factory to create Span instances based on given CandidateWord instances.
  */
 public class SpanFactory {
 
-  /** Paint to measure value width in pixels */
-  private final Paint valuePaint = new Paint();
+    /**
+     * Paint to measure value width in pixels
+     */
+    private final Paint valuePaint = new Paint();
 
-  /** Paint to measure description width in pixels. */
-  private final Paint descriptionPaint = new Paint();
+    /**
+     * Paint to measure description width in pixels.
+     */
+    private final Paint descriptionPaint = new Paint();
 
-  /** Delimiter characters for descriptions. */
-  private Optional<String> descriptionDelimiter = Optional.absent();
+    /**
+     * Delimiter characters for descriptions.
+     */
+    private Optional<String> descriptionDelimiter = Optional.absent();
 
-  public void setValueTextSize(float valueTextSize) {
-    valuePaint.setTextSize(valueTextSize);
-  }
-
-  public void setDescriptionTextSize(float descriptionTextSize) {
-    descriptionPaint.setTextSize(descriptionTextSize);
-  }
-
-  public void setDescriptionDelimiter(String descriptionDelimiter) {
-    this.descriptionDelimiter = Optional.of(descriptionDelimiter);
-  }
-
-  public Span newInstance(CandidateWord candidateWord) {
-    Preconditions.checkNotNull(candidateWord);
-
-    float valueWidth = valuePaint.measureText(candidateWord.getValue());
-    String description = candidateWord.getAnnotation().getDescription();
-    List<String> splitDescriptionList = CandidateDescriptionUtil.extractDescriptions(
-        Strings.nullToEmpty(description), descriptionDelimiter);
-    float descriptionWidth = 0;
-    for (String line : splitDescriptionList) {
-      float width = descriptionPaint.measureText(line);
-      if (width > descriptionWidth) {
-        descriptionWidth = width;
-      }
+    public void setValueTextSize(float valueTextSize) {
+        valuePaint.setTextSize(valueTextSize);
     }
-    return new Span(Optional.of(candidateWord), valueWidth, descriptionWidth,
-                    splitDescriptionList);
-  }
+
+    public void setDescriptionTextSize(float descriptionTextSize) {
+        descriptionPaint.setTextSize(descriptionTextSize);
+    }
+
+    public void setDescriptionDelimiter(String descriptionDelimiter) {
+        this.descriptionDelimiter = Optional.of(descriptionDelimiter);
+    }
+
+    public Span newInstance(CandidateWord candidateWord) {
+        Preconditions.checkNotNull(candidateWord);
+
+        float valueWidth = valuePaint.measureText(candidateWord.getValue());
+        String description = candidateWord.getAnnotation().getDescription();
+        List<String> splitDescriptionList = CandidateDescriptionUtil.extractDescriptions(
+                Strings.nullToEmpty(description), descriptionDelimiter);
+        float descriptionWidth = 0;
+        for (String line : splitDescriptionList) {
+            float width = descriptionPaint.measureText(line);
+            if (width > descriptionWidth) {
+                descriptionWidth = width;
+            }
+        }
+        return new Span(Optional.of(candidateWord), valueWidth, descriptionWidth,
+                splitDescriptionList);
+    }
 }

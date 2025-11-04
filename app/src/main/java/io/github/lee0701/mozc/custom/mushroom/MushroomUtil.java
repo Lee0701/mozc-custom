@@ -43,101 +43,101 @@ import java.util.List;
  */
 public class MushroomUtil {
 
-  // Constants to handle Mushroom applications.
-  public static final String ACTION = "com.adamrocker.android.simeji.ACTION_INTERCEPT";
-  public static final String CATEGORY = "com.adamrocker.android.simeji.REPLACE";
-  public static final String KEY = "replace_key";
-  public static final String FIELD_ID = "field_id";
+    // Constants to handle Mushroom applications.
+    public static final String ACTION = "com.adamrocker.android.simeji.ACTION_INTERCEPT";
+    public static final String CATEGORY = "com.adamrocker.android.simeji.REPLACE";
+    public static final String KEY = "replace_key";
+    public static final String FIELD_ID = "field_id";
 
-  // Disallow instantiation.
-  private MushroomUtil() {
-  }
-
-  /**
-   * Clears the proxy which is used to communicate between Mushroom activity and MozcService.
-   * <p>
-   * Should be called prior to launching Mushroom activity to avoid contamination of the results.
-   */
-  public static void clearProxy() {
-    MushroomResultProxy resultProxy = MushroomResultProxy.getInstance();
-    synchronized (resultProxy) {
-      resultProxy.clear();
-    }
-  }
-
-  /**
-   * @return the List of applications which support Mushroom protocol.
-   */
-  public static List<ResolveInfo> getMushroomApplicationList(PackageManager packageManager) {
-    Intent intent = new Intent();
-    intent.setAction(ACTION);
-    intent.addCategory(CATEGORY);
-    return packageManager.queryIntentActivities(intent, 0);
-  }
-
-  /**
-   * @return an {@code Intent} to launch {@code MushroomSelectionActivity} with
-   * the given parameters.
-   */
-  public static Intent createMushroomSelectionActivityLaunchingIntent(
-      Context context, int fieldId, String replaceKey) {
-    Intent intent = new Intent(context, MushroomSelectionActivity.class);
-    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-    intent.putExtra(FIELD_ID, fieldId);
-    intent.putExtra(KEY, replaceKey);
-    return intent;
-  }
-
-  /**
-   * @return an {@code Intent} to launch the given {@code packageName, name} with {@code replaceKey}.
-   */
-  public static Intent createMushroomLaunchingIntent(
-      String packageName, String name, String replaceKey) {
-    Intent intent = new Intent(ACTION);
-    intent.setComponent(new ComponentName(packageName, name));
-    intent.addCategory(CATEGORY);
-    intent.putExtra(KEY, replaceKey);
-    return intent;
-  }
-
-  public static String getReplaceKey(Intent intent) {
-    if (intent == null) {
-      return null;
-    }
-    return intent.getStringExtra(KEY);
-  }
-
-  /**
-   * @return the id of the field in which the result to be filled. Or, {@code -1} for error.
-   */
-  public static int getFieldId(Intent intent) {
-    if (intent == null) {
-      return -1;
-    }
-    return intent.getIntExtra(FIELD_ID, -1);
-  }
-
-  /**
-   * Sends the result from Mushroom Application to ImeService via MushroomResultProxy.
-   */
-  static void sendReplaceKey(Intent originalIntent, Intent resultIntent) {
-    // Retrieve fieldId from the original intent.
-    int fieldId = MushroomUtil.getFieldId(originalIntent);
-    if (fieldId == -1) {
-      return;
+    // Disallow instantiation.
+    private MushroomUtil() {
     }
 
-    String result = MushroomUtil.getReplaceKey(resultIntent);
-    if (result == null) {
-      return;
+    /**
+     * Clears the proxy which is used to communicate between Mushroom activity and MozcService.
+     * <p>
+     * Should be called prior to launching Mushroom activity to avoid contamination of the results.
+     */
+    public static void clearProxy() {
+        MushroomResultProxy resultProxy = MushroomResultProxy.getInstance();
+        synchronized (resultProxy) {
+            resultProxy.clear();
+        }
     }
 
-    // Because this activity doesn't know the MozcService instance we cannot talk to the instance
-    // directly. Also, binding doesn't work as it is InputMethodService, unfortunately.
-    // As a workaround, the result will be sent via MushroomResultProxy.
-    MushroomResultProxy resultProxy = MushroomResultProxy.getInstance();
-    synchronized (resultProxy) {
-      resultProxy.addReplaceKey(fieldId, result);
+    /**
+     * @return the List of applications which support Mushroom protocol.
+     */
+    public static List<ResolveInfo> getMushroomApplicationList(PackageManager packageManager) {
+        Intent intent = new Intent();
+        intent.setAction(ACTION);
+        intent.addCategory(CATEGORY);
+        return packageManager.queryIntentActivities(intent, 0);
     }
-  }
+
+    /**
+     * @return an {@code Intent} to launch {@code MushroomSelectionActivity} with
+     * the given parameters.
+     */
+    public static Intent createMushroomSelectionActivityLaunchingIntent(
+            Context context, int fieldId, String replaceKey) {
+        Intent intent = new Intent(context, MushroomSelectionActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.putExtra(FIELD_ID, fieldId);
+        intent.putExtra(KEY, replaceKey);
+        return intent;
+    }
+
+    /**
+     * @return an {@code Intent} to launch the given {@code packageName, name} with {@code replaceKey}.
+     */
+    public static Intent createMushroomLaunchingIntent(
+            String packageName, String name, String replaceKey) {
+        Intent intent = new Intent(ACTION);
+        intent.setComponent(new ComponentName(packageName, name));
+        intent.addCategory(CATEGORY);
+        intent.putExtra(KEY, replaceKey);
+        return intent;
+    }
+
+    public static String getReplaceKey(Intent intent) {
+        if (intent == null) {
+            return null;
+        }
+        return intent.getStringExtra(KEY);
+    }
+
+    /**
+     * @return the id of the field in which the result to be filled. Or, {@code -1} for error.
+     */
+    public static int getFieldId(Intent intent) {
+        if (intent == null) {
+            return -1;
+        }
+        return intent.getIntExtra(FIELD_ID, -1);
+    }
+
+    /**
+     * Sends the result from Mushroom Application to ImeService via MushroomResultProxy.
+     */
+    static void sendReplaceKey(Intent originalIntent, Intent resultIntent) {
+        // Retrieve fieldId from the original intent.
+        int fieldId = MushroomUtil.getFieldId(originalIntent);
+        if (fieldId == -1) {
+            return;
+        }
+
+        String result = MushroomUtil.getReplaceKey(resultIntent);
+        if (result == null) {
+            return;
+        }
+
+        // Because this activity doesn't know the MozcService instance we cannot talk to the instance
+        // directly. Also, binding doesn't work as it is InputMethodService, unfortunately.
+        // As a workaround, the result will be sent via MushroomResultProxy.
+        MushroomResultProxy resultProxy = MushroomResultProxy.getInstance();
+        synchronized (resultProxy) {
+            resultProxy.addReplaceKey(fieldId, result);
+        }
+    }
 }

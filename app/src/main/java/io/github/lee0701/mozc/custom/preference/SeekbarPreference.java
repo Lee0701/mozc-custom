@@ -29,8 +29,6 @@
 
 package io.github.lee0701.mozc.custom.preference;
 
-import io.github.lee0701.mozc.custom.R;
-
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.preference.Preference;
@@ -45,192 +43,195 @@ import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 
+import io.github.lee0701.mozc.custom.R;
+
 /**
  * Preference to configure the flick sensitivity.
- *
+ * <p>
  * This preference has a seekbar and its indicators to manipulate flick sensitivity,
  * in addition to other regular preferences.
  *
  */
 public class SeekbarPreference extends Preference {
-  private class SeekBarChangeListener implements OnSeekBarChangeListener {
-    private final TextView sensitivityTextView;
-    SeekBarChangeListener(TextView textView) {
-      this.sensitivityTextView = textView;
+    private class SeekBarChangeListener implements OnSeekBarChangeListener {
+        private final TextView sensitivityTextView;
+
+        SeekBarChangeListener(TextView textView) {
+            this.sensitivityTextView = textView;
+        }
+
+        @Override
+        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+            if (sensitivityTextView != null) {
+                sensitivityTextView.setText(String.valueOf(progress + offset));
+            }
+        }
+
+        @Override
+        public void onStartTrackingTouch(SeekBar seekBar) {
+        }
+
+        @Override
+        public void onStopTrackingTouch(SeekBar seekBar) {
+            setValue(seekBar.getProgress() + offset);
+        }
+    }
+
+    private int max;
+    private int offset;
+    private int value;
+    private String unit;
+    private String lowText;
+    private String middleText;
+    private String highText;
+
+    public SeekbarPreference(Context context) {
+        super(context);
+    }
+
+    public SeekbarPreference(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        init(context, attrs);
+    }
+
+    public SeekbarPreference(Context context, AttributeSet attrs, int defStyle) {
+        super(context, attrs, defStyle);
+        init(context, attrs);
+    }
+
+    private void init(Context context, AttributeSet attrs) {
+        int[] attributeArray = {
+                android.R.attr.max,
+                android.R.attr.progress,
+                R.attr.seekbar_offset,
+                R.attr.seekbar_unit,
+                R.attr.seekbar_low_text,
+                R.attr.seekbar_middle_text,
+                R.attr.seekbar_high_text,
+        };
+        TypedArray typedArray = context.obtainStyledAttributes(attrs, attributeArray);
+        try {
+            offset = typedArray.getInt(2, 0);
+            max = typedArray.getInt(0, 0);
+            value = typedArray.getInt(1, 0) + offset;
+            unit = typedArray.getString(3);
+            lowText = typedArray.getString(4);
+            middleText = typedArray.getString(5);
+            highText = typedArray.getString(6);
+        } finally {
+            typedArray.recycle();
+        }
     }
 
     @Override
-    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-      if (sensitivityTextView != null) {
-        sensitivityTextView.setText(String.valueOf(progress + offset));
-      }
+    protected View onCreateView(ViewGroup parent) {
+        LayoutInflater inflater = LayoutInflater.from(getContext());
+        View view = inflater.inflate(R.layout.pref_seekbar, parent, false);
+        ViewGroup preferenceFrame = (ViewGroup) view.findViewById(R.id.preference_frame);
+        // Note: Invoking getLayoutResource() is a hack to obtain the default resource id.
+        inflater.inflate(getLayoutResource(), preferenceFrame);
+        initializeOriginalView(view);
+        return view;
+    }
+
+    /**
+     * Initializes the original preferecen's parameters.
+     */
+    private void initializeOriginalView(View view) {
+        View summaryView = view.findViewById(android.R.id.summary);
+        if (summaryView == null) {
+            // We can do nothing.
+            return;
+        }
+        shrinkBottomMarginAndPadding(summaryView);
+
+        ViewParent parent = summaryView.getParent();
+        if (!(parent instanceof View)) {
+            return;
+        }
+        View parentView = (View) parent;
+        shrinkBottomMarginAndPadding(parentView);
+
+        ViewParent rootViewParent = parentView.getParent();
+        if (!(rootViewParent instanceof View)) {
+            return;
+        }
+
+        View rootView = (View) rootViewParent;
+        rootView.setMinimumHeight(0);
+
+        View widgetFrame = view.findViewById(android.R.id.widget_frame);
+        if (widgetFrame != null) {
+            widgetFrame.setVisibility(View.GONE);
+        }
+    }
+
+    private void shrinkBottomMarginAndPadding(View view) {
+        LayoutParams params = view.getLayoutParams();
+        if (params instanceof MarginLayoutParams) {
+            ((MarginLayoutParams) params).bottomMargin = 0;
+            view.setLayoutParams(params);
+        }
+        view.setPadding(view.getPaddingLeft(), view.getPaddingTop(), view.getPaddingRight(), 0);
     }
 
     @Override
-    public void onStartTrackingTouch(SeekBar seekBar) {
+    protected Object onGetDefaultValue(TypedArray a, int index) {
+        return a.getInt(index, 0);
     }
 
     @Override
-    public void onStopTrackingTouch(SeekBar seekBar) {
-      setValue(seekBar.getProgress() + offset);
-    }
-  }
-
-  private int max;
-  private int offset;
-  private int value;
-  private String unit;
-  private String lowText;
-  private String middleText;
-  private String highText;
-
-  public SeekbarPreference(Context context) {
-    super(context);
-  }
-
-  public SeekbarPreference(Context context, AttributeSet attrs) {
-    super(context, attrs);
-    init(context, attrs);
-  }
-
-  public SeekbarPreference(Context context, AttributeSet attrs, int defStyle) {
-    super(context, attrs, defStyle);
-    init(context, attrs);
-  }
-
-  private void init(Context context, AttributeSet attrs) {
-    int[] attributeArray = {
-        android.R.attr.max,
-        android.R.attr.progress,
-        R.attr.seekbar_offset,
-        R.attr.seekbar_unit,
-        R.attr.seekbar_low_text,
-        R.attr.seekbar_middle_text,
-        R.attr.seekbar_high_text,
-    };
-    TypedArray typedArray = context.obtainStyledAttributes(attrs, attributeArray);
-    try {
-      offset = typedArray.getInt(2, 0);
-      max = typedArray.getInt(0, 0);
-      value = typedArray.getInt(1, 0) + offset;
-      unit = typedArray.getString(3);
-      lowText = typedArray.getString(4);
-      middleText = typedArray.getString(5);
-      highText = typedArray.getString(6);
-    } finally {
-      typedArray.recycle();
-    }
-  }
-
-  @Override
-  protected View onCreateView(ViewGroup parent) {
-    LayoutInflater inflater = LayoutInflater.from(getContext());
-    View view = inflater.inflate(R.layout.pref_seekbar, parent, false);
-    ViewGroup preferenceFrame = ViewGroup.class.cast(view.findViewById(R.id.preference_frame));
-    // Note: Invoking getLayoutResource() is a hack to obtain the default resource id.
-    inflater.inflate(getLayoutResource(), preferenceFrame);
-    initializeOriginalView(view);
-    return view;
-  }
-
-  /**
-   * Initializes the original preferecen's parameters.
-   */
-  private void initializeOriginalView(View view) {
-    View summaryView = view.findViewById(android.R.id.summary);
-    if (summaryView == null) {
-      // We can do nothing.
-      return;
-    }
-    shrinkBottomMarginAndPadding(summaryView);
-
-    ViewParent parent = summaryView.getParent();
-    if (!(parent instanceof View)) {
-      return;
-    }
-    View parentView = View.class.cast(parent);
-    shrinkBottomMarginAndPadding(parentView);
-
-    ViewParent rootViewParent = parentView.getParent();
-    if (!(rootViewParent instanceof View)) {
-      return;
+    protected void onSetInitialValue(boolean restoreValue, Object defaultValue) {
+        setValue(restoreValue ? getPersistedInt(value) : (Integer) defaultValue);
     }
 
-    View rootView = View.class.cast(rootViewParent);
-    rootView.setMinimumHeight(0);
+    @Override
+    protected void onBindView(View view) {
+        super.onBindView(view);
 
-    View widgetFrame = view.findViewById(android.R.id.widget_frame);
-    if (widgetFrame != null) {
-      widgetFrame.setVisibility(View.GONE);
-    }
-  }
+        TextView valueView =
+                (TextView) view.findViewById(R.id.pref_seekbar_value);
+        SeekBar seekBar = (SeekBar) view.findViewById(R.id.pref_seekbar_seekbar);
+        if (seekBar != null) {
+            seekBar.setMax(max - offset);
+            seekBar.setProgress(value - offset);
+            seekBar.setOnSeekBarChangeListener(new SeekBarChangeListener(valueView));
+        }
+        if (valueView != null) {
+            valueView.setText(String.valueOf(value));
+        }
+        TextView unitView = (TextView) view.findViewById(R.id.pref_seekbar_unit);
+        if (unitView != null) {
+            if (unit == null) {
+                unitView.setVisibility(View.GONE);
+            } else {
+                unitView.setVisibility(View.VISIBLE);
+                unitView.setText(unit);
+            }
+        }
 
-  private void shrinkBottomMarginAndPadding(View view) {
-    LayoutParams params = view.getLayoutParams();
-    if (params instanceof MarginLayoutParams) {
-      MarginLayoutParams.class.cast(params).bottomMargin = 0;
-      view.setLayoutParams(params);
-    }
-    view.setPadding(view.getPaddingLeft(), view.getPaddingTop(), view.getPaddingRight(), 0);
-  }
-
-  @Override
-  protected Object onGetDefaultValue(TypedArray a, int index) {
-    return a.getInt(index, 0);
-  }
-
-  @Override
-  protected void onSetInitialValue(boolean restoreValue, Object defaultValue) {
-    setValue(restoreValue ? getPersistedInt(value) : Integer.class.cast(defaultValue));
-  }
-
-  @Override
-  protected void onBindView(View view) {
-    super.onBindView(view);
-
-    TextView valueView =
-        TextView.class.cast(view.findViewById(R.id.pref_seekbar_value));
-    SeekBar seekBar = SeekBar.class.cast(view.findViewById(R.id.pref_seekbar_seekbar));
-    if (seekBar != null) {
-      seekBar.setMax(max - offset);
-      seekBar.setProgress(value - offset);
-      seekBar.setOnSeekBarChangeListener(new SeekBarChangeListener(valueView));
-    }
-    if (valueView != null) {
-      valueView.setText(String.valueOf(value));
-    }
-    TextView unitView = TextView.class.cast(view.findViewById(R.id.pref_seekbar_unit));
-    if (unitView != null) {
-      if (unit == null) {
-        unitView.setVisibility(View.GONE);
-      } else {
-        unitView.setVisibility(View.VISIBLE);
-        unitView.setText(unit);
-      }
+        setTextView(lowText, view, R.id.pref_seekbar_low_text);
+        setTextView(middleText, view, R.id.pref_seekbar_middle_text);
+        setTextView(highText, view, R.id.pref_seekbar_high_text);
     }
 
-    setTextView(lowText, view, R.id.pref_seekbar_low_text);
-    setTextView(middleText, view, R.id.pref_seekbar_middle_text);
-    setTextView(highText, view, R.id.pref_seekbar_high_text);
-  }
+    private static void setTextView(String text, View parentView, int resourceId) {
+        if (text == null) {
+            return;
+        }
 
-  private static void setTextView(String text, View parentView, int resourceId) {
-    if (text == null) {
-      return;
+        TextView textView = (TextView) parentView.findViewById(resourceId);
+        if (textView == null) {
+            return;
+        }
+
+        textView.setText(text);
     }
 
-    TextView textView = TextView.class.cast(parentView.findViewById(resourceId));
-    if (textView == null) {
-      return;
+    void setValue(int value) {
+        this.value = value;
+        persistInt(value);
+        notifyDependencyChange(shouldDisableDependents());
+        notifyChanged();
     }
-
-    textView.setText(text);
-  }
-
-  void setValue(int value) {
-    this.value = value;
-    persistInt(value);
-    notifyDependencyChange(shouldDisableDependents());
-    notifyChanged();
-  }
 }

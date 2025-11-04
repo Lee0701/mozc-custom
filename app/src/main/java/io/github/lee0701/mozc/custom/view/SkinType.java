@@ -29,48 +29,48 @@
 
 package io.github.lee0701.mozc.custom.view;
 
-import io.github.lee0701.mozc.custom.MozcLog;
-import io.github.lee0701.mozc.custom.R;
-import io.github.lee0701.mozc.custom.view.SkinParser.SkinParserException;
+import android.content.res.Resources;
+
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 
-import android.content.res.Resources;
+import io.github.lee0701.mozc.custom.MozcLog;
+import io.github.lee0701.mozc.custom.R;
+import io.github.lee0701.mozc.custom.view.SkinParser.SkinParserException;
 
 /**
  * Type of skins.
  */
 public enum SkinType {
 
-  ORANGE_LIGHTGRAY(R.xml.skin_orange_lightgray),
-  BLUE_LIGHTGRAY(R.xml.skin_blue_lightgray),
-  BLUE_DARKGRAY(R.xml.skin_blue_darkgray),
-  MATERIAL_DESIGN_LIGHT(R.xml.skin_material_design_light),
-  MATERIAL_DESIGN_DARK(R.xml.skin_material_design_dark),
-  // This is an instance for testing of skin support in some classes.
-  // TODO(matsuzakit): No more required. Remove.
-  TEST(R.xml.skin_orange_lightgray)
-  ;
+    ORANGE_LIGHTGRAY(R.xml.skin_orange_lightgray),
+    BLUE_LIGHTGRAY(R.xml.skin_blue_lightgray),
+    BLUE_DARKGRAY(R.xml.skin_blue_darkgray),
+    MATERIAL_DESIGN_LIGHT(R.xml.skin_material_design_light),
+    MATERIAL_DESIGN_DARK(R.xml.skin_material_design_dark),
+    // This is an instance for testing of skin support in some classes.
+    // TODO(matsuzakit): No more required. Remove.
+    TEST(R.xml.skin_orange_lightgray);
 
-  private Optional<Skin> skin = Optional.absent();
-  private final int resourceId;
+    private Optional<Skin> skin = Optional.absent();
+    private final int resourceId;
 
-  private SkinType(int resourceId) {
-    this.resourceId = resourceId;
-  }
-
-  public Skin getSkin(Resources resources) {
-    Preconditions.checkNotNull(resources);
-    if (skin.isPresent()) {
-      return skin.get();
+    SkinType(int resourceId) {
+        this.resourceId = resourceId;
     }
-    SkinParser parser = new SkinParser(resources, resources.getXml(resourceId));
-    try {
-      skin = Optional.of(parser.parseSkin());
-    } catch (SkinParserException e) {
-      MozcLog.e(e.getLocalizedMessage());
-      skin = Optional.of(new Skin());  // Fall-back skin.
+
+    public Skin getSkin(Resources resources) {
+        Preconditions.checkNotNull(resources);
+        if (skin.isPresent()) {
+            return skin.get();
+        }
+        SkinParser parser = new SkinParser(resources, resources.getXml(resourceId));
+        try {
+            skin = Optional.of(parser.parseSkin());
+        } catch (SkinParserException e) {
+            MozcLog.e(e.getLocalizedMessage());
+            skin = Optional.of(new Skin());  // Fall-back skin.
+        }
+        return skin.get();
     }
-    return skin.get();
-  }
 }

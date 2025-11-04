@@ -43,118 +43,121 @@ import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 /**
  * A http client class used by nativa layer instead of cURL.
  *
  */
 public class HttpClient {
-  private static volatile AbstractHttpClient httpClient;
+    private static volatile AbstractHttpClient httpClient;
 
-  private HttpClient() {
-  }
+    private HttpClient() {
+    }
 
-  private static AbstractHttpClient getHttpClient() {
-    AbstractHttpClient client = httpClient;
-    if (client == null) {
-      synchronized (HttpClient.class) {
-        if (httpClient == null) {
-          client = httpClient = new DefaultHttpClient();
+    private static AbstractHttpClient getHttpClient() {
+        AbstractHttpClient client = httpClient;
+        if (client == null) {
+            synchronized (HttpClient.class) {
+                if (httpClient == null) {
+                    client = httpClient = new DefaultHttpClient();
+                }
+            }
         }
-      }
-    }
-    return client;
-  }
-
-  /**
-   * Creates a request instance.
-   *
-   * All the parameters are the same of {@link #request(byte[], byte[], byte[])}'s.
-   * @return a request instance
-   * @throw IllegalArgumentException thrown if unacceptable method is passed
-   */
-  static HttpUriRequest createRequest(String method, String url, byte[] postData) {
-    if (method.equals("GET")) {
-      return new HttpGet(url);
-    } else if (method.equals("HEAD")) {
-      return new HttpHead(url);
-    } else if (method.equals("POST")) {
-      HttpPost postRequest = new HttpPost(url);
-      postRequest.setHeader("Content-type", "text/plain");
-      ByteArrayEntity entiry = new ByteArrayEntity(postData);
-      postRequest.setEntity(entiry);
-      return postRequest;
-    }
-    throw new IllegalArgumentException(
-        "method " + method + " is invalid (must be GET, HEAD or POST).");
-  }
-
-  static class ResponseGetPostHandler
-      implements org.apache.http.client.ResponseHandler<ByteBuffer> {
-    // Use static initializer instead of double-check ideom
-    // because this class is loaded when Request method is invoked.
-    // This is typically not boot-up time frame
-    // so lazy evaluation is not needed.
-    private static final ResponseGetPostHandler instance = new ResponseGetPostHandler();
-
-    private ResponseGetPostHandler() {
+        return client;
     }
 
-    @Override
-    public ByteBuffer handleResponse(HttpResponse response)
-        throws ClientProtocolException, IOException {
-      return ByteBuffer.wrap(EntityUtils.toByteArray(response.getEntity()));
+    /**
+     * Creates a request instance.
+     * <p>
+     * All the parameters are the same of {@link #request(byte[], byte[], byte[])}'s.
+     *
+     * @return a request instance
+     * @throw IllegalArgumentException thrown if unacceptable method is passed
+     */
+    static HttpUriRequest createRequest(String method, String url, byte[] postData) {
+        if (method.equals("GET")) {
+            return new HttpGet(url);
+        } else if (method.equals("HEAD")) {
+            return new HttpHead(url);
+        } else if (method.equals("POST")) {
+            HttpPost postRequest = new HttpPost(url);
+            postRequest.setHeader("Content-type", "text/plain");
+            ByteArrayEntity entiry = new ByteArrayEntity(postData);
+            postRequest.setEntity(entiry);
+            return postRequest;
+        }
+        throw new IllegalArgumentException(
+                "method " + method + " is invalid (must be GET, HEAD or POST).");
     }
 
-    public static ResponseGetPostHandler getInstance() {
-      return instance;
-    }
-  }
+    static class ResponseGetPostHandler
+            implements org.apache.http.client.ResponseHandler<ByteBuffer> {
+        // Use static initializer instead of double-check ideom
+        // because this class is loaded when Request method is invoked.
+        // This is typically not boot-up time frame
+        // so lazy evaluation is not needed.
+        private static final ResponseGetPostHandler instance = new ResponseGetPostHandler();
 
-  /**
-  * For compatibility with cURL, we should do special thing on HEAD method.
-  */
-  static class ResponseHeadHandler implements org.apache.http.client.ResponseHandler<ByteBuffer> {
-    private static final ResponseHeadHandler instance = new ResponseHeadHandler();
+        private ResponseGetPostHandler() {
+        }
 
-    private ResponseHeadHandler() {
-    }
+        @Override
+        public ByteBuffer handleResponse(HttpResponse response)
+                throws IOException {
+            return ByteBuffer.wrap(EntityUtils.toByteArray(response.getEntity()));
+        }
 
-    @Override
-    public ByteBuffer handleResponse(HttpResponse response) throws IOException {
-      // cURL returns response header string as an entity for HEAD method's response.
-      // Emulate here the behavior.
-      StringBuilder result = new StringBuilder();
-      result.append(response.getStatusLine().toString()).append('\n');
-      for (Header header : response.getAllHeaders()) {
-        result.append(header.getName()).append(": ").append(header.getValue()).append('\n');
-      }
-      result.append('\n');
-      return ByteBuffer.wrap(result.toString().getBytes("UTF-8"));
+        public static ResponseGetPostHandler getInstance() {
+            return instance;
+        }
     }
 
-    public static ResponseHeadHandler getInstance() {
-      return instance;
-    }
-  }
+    /**
+     * For compatibility with cURL, we should do special thing on HEAD method.
+     */
+    static class ResponseHeadHandler implements org.apache.http.client.ResponseHandler<ByteBuffer> {
+        private static final ResponseHeadHandler instance = new ResponseHeadHandler();
 
-  /**
-   * Processes a request (typically) given from native layer.
-   * @param method "GET", "POST" or "HEAD".
-   * @param url a URL string.
-   * @param postData a byte array for data of POST method or null for GET or HEAD methods
-   * @return an byte array of the result
-   */
-  public static byte[] request(byte[] method, byte[] url, byte[] postData)
-      throws ClientProtocolException, IOException {
-    AbstractHttpClient httpClient = getHttpClient();
-    HttpUriRequest request =
-        createRequest(new String(method, "utf-8"), new String(url, "utf-8"), postData);
-    ByteBuffer response =
-        httpClient.execute(request,
-                           "HEAD".equals(request.getMethod())
-                               ? ResponseHeadHandler.getInstance()
-                               : ResponseGetPostHandler.getInstance());
-    return response.array();
-  }
+        private ResponseHeadHandler() {
+        }
+
+        @Override
+        public ByteBuffer handleResponse(HttpResponse response) throws IOException {
+            // cURL returns response header string as an entity for HEAD method's response.
+            // Emulate here the behavior.
+            StringBuilder result = new StringBuilder();
+            result.append(response.getStatusLine().toString()).append('\n');
+            for (Header header : response.getAllHeaders()) {
+                result.append(header.getName()).append(": ").append(header.getValue()).append('\n');
+            }
+            result.append('\n');
+            return ByteBuffer.wrap(result.toString().getBytes(StandardCharsets.UTF_8));
+        }
+
+        public static ResponseHeadHandler getInstance() {
+            return instance;
+        }
+    }
+
+    /**
+     * Processes a request (typically) given from native layer.
+     *
+     * @param method   "GET", "POST" or "HEAD".
+     * @param url      a URL string.
+     * @param postData a byte array for data of POST method or null for GET or HEAD methods
+     * @return an byte array of the result
+     */
+    public static byte[] request(byte[] method, byte[] url, byte[] postData)
+            throws IOException {
+        AbstractHttpClient httpClient = getHttpClient();
+        HttpUriRequest request =
+                createRequest(new String(method, StandardCharsets.UTF_8), new String(url, StandardCharsets.UTF_8), postData);
+        ByteBuffer response =
+                httpClient.execute(request,
+                        "HEAD".equals(request.getMethod())
+                                ? ResponseHeadHandler.getInstance()
+                                : ResponseGetPostHandler.getInstance());
+        return response.array();
+    }
 }

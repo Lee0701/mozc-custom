@@ -29,20 +29,6 @@
 
 package io.github.lee0701.mozc.custom;
 
-import io.github.lee0701.mozc.custom.KeycodeConverter.KeyEventInterface;
-import io.github.lee0701.mozc.custom.emoji.EmojiProviderType;
-import io.github.lee0701.mozc.custom.hardwarekeyboard.HardwareKeyboard.CompositionSwitchMode;
-import io.github.lee0701.mozc.custom.keyboard.Keyboard.KeyboardSpecification;
-import io.github.lee0701.mozc.custom.keyboard.KeyboardActionListener;
-import io.github.lee0701.mozc.custom.model.JapaneseSoftwareKeyboardModel;
-import io.github.lee0701.mozc.custom.preference.ClientSidePreference.HardwareKeyMap;
-import io.github.lee0701.mozc.custom.preference.ClientSidePreference.InputStyle;
-import io.github.lee0701.mozc.custom.preference.ClientSidePreference.KeyboardLayout;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Command;
-import io.github.lee0701.mozc.custom.util.CursorAnchorInfoWrapper;
-import io.github.lee0701.mozc.custom.view.Skin;
-import com.google.common.annotations.VisibleForTesting;
-
 import android.content.Context;
 import android.content.res.Configuration;
 import android.inputmethodservice.InputMethodService;
@@ -52,187 +38,204 @@ import android.view.View;
 import android.view.Window;
 import android.view.inputmethod.EditorInfo;
 
+import com.google.common.annotations.VisibleForTesting;
+
+import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Command;
+
+import io.github.lee0701.mozc.custom.KeycodeConverter.KeyEventInterface;
+import io.github.lee0701.mozc.custom.emoji.EmojiProviderType;
+import io.github.lee0701.mozc.custom.hardwarekeyboard.HardwareKeyboard.CompositionSwitchMode;
+import io.github.lee0701.mozc.custom.keyboard.Keyboard.KeyboardSpecification;
+import io.github.lee0701.mozc.custom.keyboard.KeyboardActionListener;
+import io.github.lee0701.mozc.custom.model.JapaneseSoftwareKeyboardModel;
+import io.github.lee0701.mozc.custom.preference.ClientSidePreference.HardwareKeyMap;
+import io.github.lee0701.mozc.custom.preference.ClientSidePreference.InputStyle;
+import io.github.lee0701.mozc.custom.preference.ClientSidePreference.KeyboardLayout;
+import io.github.lee0701.mozc.custom.util.CursorAnchorInfoWrapper;
+import io.github.lee0701.mozc.custom.view.Skin;
+
 /**
  * Interface for ViewManager which manages Input, Candidate and Extracted views.
  *
  */
 public interface ViewManagerInterface extends MemoryManageable {
 
-  /**
-   * Keyboard layout position.
-   */
-  public enum LayoutAdjustment {
-    FILL,
-    RIGHT,
-    LEFT,
-  }
+    /**
+     * Keyboard layout position.
+     */
+    enum LayoutAdjustment {
+        FILL,
+        RIGHT,
+        LEFT,
+    }
 
-  /**
-   * Creates new input view.
-   *
-   * "Input view" is a software keyboard in almost all cases.
-   *
-   * Previously created input view is not accessed any more after calling this method.
-   *
-   * @param context
-   * @return newly created view.
-   */
-  public View createMozcView(Context context);
+    /**
+     * Creates new input view.
+     * <p>
+     * "Input view" is a software keyboard in almost all cases.
+     * <p>
+     * Previously created input view is not accessed any more after calling this method.
+     *
+     * @param context
+     * @return newly created view.
+     */
+    View createMozcView(Context context);
 
-  /**
-   * Renders views which this instance own based on Command.Output.
-   *
-   * Note that showing/hiding views is Service's responsibility.
-   */
-  public void render(Command outCommand);
+    /**
+     * Renders views which this instance own based on Command.Output.
+     * <p>
+     * Note that showing/hiding views is Service's responsibility.
+     */
+    void render(Command outCommand);
 
-  /**
-   * @return true if {@code event} should be consumed by Mozc client side and should be processed
-   *         asynchronously.
-   */
-  public boolean isKeyConsumedOnViewAsynchronously(KeyEvent event);
+    /**
+     * @return true if {@code event} should be consumed by Mozc client side and should be processed
+     * asynchronously.
+     */
+    boolean isKeyConsumedOnViewAsynchronously(KeyEvent event);
 
-  /**
-   * Consumes and handles the given key event.
-   *
-   * @throws IllegalArgumentException If {@code KeyEvent} is not the key to consume.
-   */
-  public void consumeKeyOnViewSynchronously(KeyEvent event);
+    /**
+     * Consumes and handles the given key event.
+     *
+     * @throws IllegalArgumentException If {@code KeyEvent} is not the key to consume.
+     */
+    void consumeKeyOnViewSynchronously(KeyEvent event);
 
-  public void onHardwareKeyEvent(KeyEvent keyEvent);
+    void onHardwareKeyEvent(KeyEvent keyEvent);
 
-  /**
-   * @return whether the view should consume the generic motion event or not.
-   */
-  public boolean isGenericMotionToConsume(MotionEvent event);
+    /**
+     * @return whether the view should consume the generic motion event or not.
+     */
+    boolean isGenericMotionToConsume(MotionEvent event);
 
-  /**
-   * Consumes and handles the given generic motion event.
-   *
-   * @throws IllegalArgumentException If {@code MotionEvent} is not the key to consume.
-   */
-  public boolean consumeGenericMotion(MotionEvent event);
+    /**
+     * Consumes and handles the given generic motion event.
+     *
+     * @throws IllegalArgumentException If {@code MotionEvent} is not the key to consume.
+     */
+    boolean consumeGenericMotion(MotionEvent event);
 
-  /**
-   * @return the current keyboard specification.
-   */
-  public KeyboardSpecification getKeyboardSpecification();
+    /**
+     * @return the current keyboard specification.
+     */
+    KeyboardSpecification getKeyboardSpecification();
 
-  /**
-   * Set {@code EditorInfo} instance to the current view.
-   */
-  public void setEditorInfo(EditorInfo attribute);
+    /**
+     * Set {@code EditorInfo} instance to the current view.
+     */
+    void setEditorInfo(EditorInfo attribute);
 
-  /**
-   * Set text for IME action button label.
-   */
-  public void setTextForActionButton(CharSequence text);
+    /**
+     * Set text for IME action button label.
+     */
+    void setTextForActionButton(CharSequence text);
 
-  public boolean hideSubInputView();
+    boolean hideSubInputView();
 
-  /**
-   * Set this keyboard layout to the specified one.
-   *
-   * @param keyboardLayout New keyboard layout.
-   * @throws NullPointerException If {@code keyboardLayout} is {@code null}.
-   */
-  public void setKeyboardLayout(KeyboardLayout keyboardLayout);
+    /**
+     * Set this keyboard layout to the specified one.
+     *
+     * @param keyboardLayout New keyboard layout.
+     * @throws NullPointerException If {@code keyboardLayout} is {@code null}.
+     */
+    void setKeyboardLayout(KeyboardLayout keyboardLayout);
 
-  /**
-   * Set the input style.
-   *
-   * @param inputStyle new input style.
-   * @throws NullPointerException If {@code inputStyle} is {@code null}.
-   * TODO(hidehiko): Refactor out following keyboard switching logic into another class.
-   */
-  public void setInputStyle(InputStyle inputStyle);
+    /**
+     * Set the input style.
+     *
+     * @param inputStyle new input style.
+     * @throws NullPointerException If {@code inputStyle} is {@code null}.
+     *                              TODO(hidehiko): Refactor out following keyboard switching logic into another class.
+     */
+    void setInputStyle(InputStyle inputStyle);
 
-  public void setQwertyLayoutForAlphabet(boolean qwertyLayoutForAlphabet);
+    void setQwertyLayoutForAlphabet(boolean qwertyLayoutForAlphabet);
 
-  public void setFullscreenMode(boolean fullscreenMode);
+    void setFullscreenMode(boolean fullscreenMode);
 
-  public boolean isFullscreenMode();
+    boolean isFullscreenMode();
 
-  public void setFlickSensitivity(int flickSensitivity);
+    void setFlickSensitivity(int flickSensitivity);
 
-  public void setEmojiProviderType(EmojiProviderType emojiProviderType);
+    void setEmojiProviderType(EmojiProviderType emojiProviderType);
 
-  public void maybeTransitToNarrowMode(Command command, KeyEventInterface keyEvent);
+    void maybeTransitToNarrowMode(Command command, KeyEventInterface keyEvent);
 
-  public boolean isNarrowMode();
+    boolean isNarrowMode();
 
-  public boolean isFloatingCandidateMode();
+    boolean isFloatingCandidateMode();
 
-  public void setPopupEnabled(boolean popupEnabled);
+    void setPopupEnabled(boolean popupEnabled);
 
-  public void switchHardwareKeyboardCompositionMode(CompositionSwitchMode mode);
+    void switchHardwareKeyboardCompositionMode(CompositionSwitchMode mode);
 
-  public void setHardwareKeyMap(HardwareKeyMap hardwareKeyMap);
+    void setHardwareKeyMap(HardwareKeyMap hardwareKeyMap);
 
-  public void setSkin(Skin skin);
+    void setSkin(Skin skin);
 
-  public void setMicrophoneButtonEnabledByPreference(boolean microphoneButtonEnabled);
+    void setMicrophoneButtonEnabledByPreference(boolean microphoneButtonEnabled);
 
-  public void setLayoutAdjustment(LayoutAdjustment layoutAdjustment);
+    void setLayoutAdjustment(LayoutAdjustment layoutAdjustment);
 
-  public void setKeyboardHeightRatio(int keyboardHeightRatio);
+    void setKeyboardHeightRatio(int keyboardHeightRatio);
 
-  public void onConfigurationChanged(Configuration newConfig);
+    void onConfigurationChanged(Configuration newConfig);
 
-  public void onStartInputView(EditorInfo editorInfo);
+    void onStartInputView(EditorInfo editorInfo);
 
-  public void setCursorAnchorInfo(CursorAnchorInfoWrapper info);
+    void setCursorAnchorInfo(CursorAnchorInfoWrapper info);
 
-  public void setCursorAnchorInfoEnabled(boolean enabled);
+    void setCursorAnchorInfoEnabled(boolean enabled);
 
-  /**
-   * Reset the status of the current input view.
-   */
-  public void reset();
+    /**
+     * Reset the status of the current input view.
+     */
+    void reset();
 
-  public void computeInsets(
-      Context context, InputMethodService.Insets outInsets, Window window);
+    void computeInsets(
+            Context context, InputMethodService.Insets outInsets, Window window);
 
-  public void onShowSymbolInputView();
-  public void onCloseSymbolInputView();
+    void onShowSymbolInputView();
 
-  @VisibleForTesting
-  public ViewEventListener getEventListener();
+    void onCloseSymbolInputView();
 
-  @VisibleForTesting
-  public JapaneseSoftwareKeyboardModel getActiveSoftwareKeyboardModel();
+    @VisibleForTesting
+    ViewEventListener getEventListener();
 
-  @VisibleForTesting
-  public boolean isPopupEnabled();
+    @VisibleForTesting
+    JapaneseSoftwareKeyboardModel getActiveSoftwareKeyboardModel();
 
-  @VisibleForTesting
-  public int getFlickSensitivity();
+    @VisibleForTesting
+    boolean isPopupEnabled();
 
-  @VisibleForTesting
-  public EmojiProviderType getEmojiProviderType();
+    @VisibleForTesting
+    int getFlickSensitivity();
 
-  @VisibleForTesting
-  public Skin getSkin();
+    @VisibleForTesting
+    EmojiProviderType getEmojiProviderType();
 
-  @VisibleForTesting
-  public boolean isMicrophoneButtonEnabledByPreference();
+    @VisibleForTesting
+    Skin getSkin();
 
-  @VisibleForTesting
-  public LayoutAdjustment getLayoutAdjustment();
+    @VisibleForTesting
+    boolean isMicrophoneButtonEnabledByPreference();
 
-  @VisibleForTesting
-  public int getKeyboardHeightRatio();
+    @VisibleForTesting
+    LayoutAdjustment getLayoutAdjustment();
 
-  @VisibleForTesting
-  public HardwareKeyMap getHardwareKeyMap();
+    @VisibleForTesting
+    int getKeyboardHeightRatio();
 
-  /**
-   * Used for testing to inject key events.
-   */
-  @VisibleForTesting
-  public KeyboardActionListener getKeyboardActionListener();
+    @VisibleForTesting
+    HardwareKeyMap getHardwareKeyMap();
 
-  void updateGlobeButtonEnabled();
+    /**
+     * Used for testing to inject key events.
+     */
+    @VisibleForTesting
+    KeyboardActionListener getKeyboardActionListener();
 
-  void updateMicrophoneButtonEnabled();
+    void updateGlobeButtonEnabled();
+
+    void updateMicrophoneButtonEnabled();
 }

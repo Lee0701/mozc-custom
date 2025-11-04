@@ -29,13 +29,13 @@
 
 package io.github.lee0701.mozc.custom.util;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Optional;
-
 import android.annotation.TargetApi;
 import android.graphics.Matrix;
 import android.graphics.RectF;
 import android.view.inputmethod.CursorAnchorInfo;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Optional;
 
 /**
  * Simple wrapper class of {@link CursorAnchorInfo}.
@@ -47,123 +47,124 @@ import android.view.inputmethod.CursorAnchorInfo;
 @TargetApi(21)
 public class CursorAnchorInfoWrapper {
 
-  @VisibleForTesting public final Optional<CursorAnchorInfo> rawData;
+    @VisibleForTesting
+    public final Optional<CursorAnchorInfo> rawData;
 
-  public CursorAnchorInfoWrapper() {
-    this.rawData = Optional.absent();
-  }
-
-  public CursorAnchorInfoWrapper(CursorAnchorInfo info) {
-    this.rawData = Optional.of(info);
-  }
-
-  public int describeContents() {
-    if (rawData.isPresent()) {
-      return rawData.get().describeContents();
+    public CursorAnchorInfoWrapper() {
+        this.rawData = Optional.absent();
     }
-    return 0;
-  }
 
-  @Override
-  public boolean equals(Object obj) {
-    if (!(obj instanceof CursorAnchorInfoWrapper)) {
-      return false;
+    public CursorAnchorInfoWrapper(CursorAnchorInfo info) {
+        this.rawData = Optional.of(info);
     }
-    CursorAnchorInfoWrapper other = CursorAnchorInfoWrapper.class.cast(obj);
-    return this.rawData.equals(other.rawData);
-  }
 
-  public RectF getCharacterBounds(int index) {
-    if (rawData.isPresent()) {
-      return rawData.get().getCharacterBounds(index);
+    public int describeContents() {
+        if (rawData.isPresent()) {
+            return rawData.get().describeContents();
+        }
+        return 0;
     }
-    return new RectF();
-  }
 
-  public int getCharacterBoundsFlags(int index) {
-    if (rawData.isPresent()) {
-      return rawData.get().getCharacterBoundsFlags(index);
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof CursorAnchorInfoWrapper)) {
+            return false;
+        }
+        CursorAnchorInfoWrapper other = (CursorAnchorInfoWrapper) obj;
+        return this.rawData.equals(other.rawData);
     }
-    return 0;
-  }
 
-  public CharSequence getComposingText() {
-    if (rawData.isPresent()) {
-      return rawData.get().getComposingText();
+    public RectF getCharacterBounds(int index) {
+        if (rawData.isPresent()) {
+            return rawData.get().getCharacterBounds(index);
+        }
+        return new RectF();
     }
-    return "";
-  }
 
-  public int getComposingTextStart() {
-    if (rawData.isPresent()) {
-      return rawData.get().getComposingTextStart();
+    public int getCharacterBoundsFlags(int index) {
+        if (rawData.isPresent()) {
+            return rawData.get().getCharacterBoundsFlags(index);
+        }
+        return 0;
     }
-    return 0;
-  }
 
-  public float getInsertionMarkerBaseline() {
-    if (rawData.isPresent()) {
-      return rawData.get().getInsertionMarkerBaseline();
+    public CharSequence getComposingText() {
+        if (rawData.isPresent()) {
+            return rawData.get().getComposingText();
+        }
+        return "";
     }
-    return 0f;
-  }
 
-  public float getInsertionMarkerBottom() {
-    if (rawData.isPresent()) {
-      return rawData.get().getInsertionMarkerBottom();
+    public int getComposingTextStart() {
+        if (rawData.isPresent()) {
+            return rawData.get().getComposingTextStart();
+        }
+        return 0;
     }
-    return 0f;
-  }
 
-  public int getInsertionMarkerFlags() {
-    if (rawData.isPresent()) {
-      return rawData.get().getInsertionMarkerFlags();
+    public float getInsertionMarkerBaseline() {
+        if (rawData.isPresent()) {
+            return rawData.get().getInsertionMarkerBaseline();
+        }
+        return 0f;
     }
-    return 0;
-  }
 
-  public float getInsertionMarkerHorizontal() {
-    if (rawData.isPresent()) {
-      return rawData.get().getInsertionMarkerHorizontal();
+    public float getInsertionMarkerBottom() {
+        if (rawData.isPresent()) {
+            return rawData.get().getInsertionMarkerBottom();
+        }
+        return 0f;
     }
-    return 0f;
-  }
 
-  public float getInsertionMarkerTop() {
-    if (rawData.isPresent()) {
-      return rawData.get().getInsertionMarkerTop();
+    public int getInsertionMarkerFlags() {
+        if (rawData.isPresent()) {
+            return rawData.get().getInsertionMarkerFlags();
+        }
+        return 0;
     }
-    return 0;
-  }
 
-  public Matrix getMatrix() {
-    if (rawData.isPresent()) {
-      return rawData.get().getMatrix();
+    public float getInsertionMarkerHorizontal() {
+        if (rawData.isPresent()) {
+            return rawData.get().getInsertionMarkerHorizontal();
+        }
+        return 0f;
     }
-    return new Matrix();
-  }
 
-  public int getSelectionEnd() {
-    if (rawData.isPresent()) {
-      return rawData.get().getSelectionEnd();
+    public float getInsertionMarkerTop() {
+        if (rawData.isPresent()) {
+            return rawData.get().getInsertionMarkerTop();
+        }
+        return 0;
     }
-    return 0;
-  }
 
-  public int getSelectionStart() {
-    if (rawData.isPresent()) {
-      return rawData.get().getSelectionStart();
+    public Matrix getMatrix() {
+        if (rawData.isPresent()) {
+            return rawData.get().getMatrix();
+        }
+        return new Matrix();
     }
-    return 0;
-  }
 
-  @Override
-  public int hashCode() {
-    return rawData.hashCode();
-  }
+    public int getSelectionEnd() {
+        if (rawData.isPresent()) {
+            return rawData.get().getSelectionEnd();
+        }
+        return 0;
+    }
 
-  @Override
-  public String toString() {
-    return rawData.toString();
-  }
+    public int getSelectionStart() {
+        if (rawData.isPresent()) {
+            return rawData.get().getSelectionStart();
+        }
+        return 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return rawData.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return rawData.toString();
+    }
 }

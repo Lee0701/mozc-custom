@@ -29,11 +29,11 @@
 
 package io.github.lee0701.mozc.custom.view;
 
-import com.google.common.base.Preconditions;
-
 import android.content.Context;
 import android.util.AttributeSet;
 import android.widget.ImageView;
+
+import com.google.common.base.Preconditions;
 
 /**
  * A ImageView which accepts mozc drawable as src.
@@ -53,52 +53,52 @@ import android.widget.ImageView;
  */
 public class MozcImageView extends ImageView implements MozcImageCapableView {
 
-  private final MozcImageCapableViewDelegate delegate = new MozcImageCapableViewDelegate(this);
+    private final MozcImageCapableViewDelegate delegate = new MozcImageCapableViewDelegate(this);
 
-  public MozcImageView(Context context, AttributeSet attrs, int defStyle) {
-    super(context, attrs, defStyle);
-    Preconditions.checkArgument(
-        MozcImageCapableViewDelegate.assertSrcAttribute(getResources(), attrs));
-    delegate.loadMozcImageSource(attrs);
-  }
+    public MozcImageView(Context context, AttributeSet attrs, int defStyle) {
+        super(context, attrs, defStyle);
+        Preconditions.checkArgument(
+                MozcImageCapableViewDelegate.assertSrcAttribute(getResources(), attrs));
+        delegate.loadMozcImageSource(attrs);
+    }
 
-  public MozcImageView(Context context, AttributeSet attrs) {
-    super(context, attrs);
-    Preconditions.checkArgument(
-        MozcImageCapableViewDelegate.assertSrcAttribute(getResources(), attrs));
-    delegate.loadMozcImageSource(attrs);
-  }
+    public MozcImageView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        Preconditions.checkArgument(
+                MozcImageCapableViewDelegate.assertSrcAttribute(getResources(), attrs));
+        delegate.loadMozcImageSource(attrs);
+    }
 
-  public MozcImageView(Context context) {
-    super(context);
-  }
+    public MozcImageView(Context context) {
+        super(context);
+    }
 
-  public void setRawId(int rawId) {
-    delegate.setRawId(rawId);
-  }
+    public void setRawId(int rawId) {
+        delegate.setRawId(rawId);
+    }
 
-  public void setSkin(Skin skin) {
-    delegate.setSkin(skin);
-  }
+    public void setSkin(Skin skin) {
+        delegate.setSkin(skin);
+    }
 
-  @Override
-  protected void onSizeChanged(int width, int height, int oldWidth, int oldHeight) {
-    super.onSizeChanged(width, height, oldWidth, oldHeight);
-    delegate.updateAdditionalPadding();
-  }
+    @Override
+    protected void onSizeChanged(int width, int height, int oldWidth, int oldHeight) {
+        super.onSizeChanged(width, height, oldWidth, oldHeight);
+        delegate.updateAdditionalPadding();
+    }
 
-  @Override
-  public void setMaxImageWidth(int maxImageWidth) {
-    delegate.setMaxImageWidth(maxImageWidth);
-  }
+    @Override
+    public void setMaxImageWidth(int maxImageWidth) {
+        delegate.setMaxImageWidth(maxImageWidth);
+    }
 
-  @Override
-  public void setMaxImageHeight(int maxImageHeight) {
-    delegate.setMaxImageHeight(maxImageHeight);
-  }
+    @Override
+    public void setMaxImageHeight(int maxImageHeight) {
+        delegate.setMaxImageHeight(maxImageHeight);
+    }
 
-  @Override
-  public ImageView asImageView() {
-    return this;
-  }
+    @Override
+    public ImageView asImageView() {
+        return this;
+    }
 }

@@ -29,13 +29,10 @@
 
 package io.github.lee0701.mozc.custom.emoji;
 
-import io.github.lee0701.mozc.custom.MozcLog;
-import io.github.lee0701.mozc.custom.MozcUtil.TelephonyManagerInterface;
-import io.github.lee0701.mozc.custom.preference.PreferenceUtil;
+import android.content.SharedPreferences;
+
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
-
-import android.content.SharedPreferences;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -45,108 +42,112 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import io.github.lee0701.mozc.custom.MozcLog;
+import io.github.lee0701.mozc.custom.MozcUtil.TelephonyManagerInterface;
+import io.github.lee0701.mozc.custom.preference.PreferenceUtil;
+
 /**
  * Providers whose emoji set MechaMozc supports.
  *
  */
 public enum EmojiProviderType {
 
-  /**
-   * Place holder for following situations.
-   * <ul>
-   * <li>Provider detection is failed.
-   * <li>A user select this item explicitly on the preference screen.
-   * <li>Emoji is disabled by spec.
-   * </ul>
-   * If a user invokes Emoji screen on symbol input view, provider chooser dialog will be shown.
-   * If Emoji is disabled by spec, Emoji screen itself should be suppressed.
-   *
-   * Note:
-   * <ul>
-   * <li>NONE is just a default value. User should update it to use Emoji.
-   * <li>Unicode 6.0 Emoji is available even if DOCOMO, KDDI and SOFTBANK.
-   * </ul>
-   */
-  NONE((byte) 0),
-  DOCOMO((byte) 1),
-  KDDI((byte) 2),
-  SOFTBANK((byte) 4),
-  UNICODE((byte) 8),
-  ;
+    /**
+     * Place holder for following situations.
+     * <ul>
+     * <li>Provider detection is failed.
+     * <li>A user select this item explicitly on the preference screen.
+     * <li>Emoji is disabled by spec.
+     * </ul>
+     * If a user invokes Emoji screen on symbol input view, provider chooser dialog will be shown.
+     * If Emoji is disabled by spec, Emoji screen itself should be suppressed.
+     * <p>
+     * Note:
+     * <ul>
+     * <li>NONE is just a default value. User should update it to use Emoji.
+     * <li>Unicode 6.0 Emoji is available even if DOCOMO, KDDI and SOFTBANK.
+     * </ul>
+     */
+    NONE((byte) 0),
+    DOCOMO((byte) 1),
+    KDDI((byte) 2),
+    SOFTBANK((byte) 4),
+    UNICODE((byte) 8),
+    ;
 
-  private static final Map<String, EmojiProviderType> NETWORK_OPERATOR_MAP;
-  private static final Set<String> NAME_SET;
+    private static final Map<String, EmojiProviderType> NETWORK_OPERATOR_MAP;
+    private static final Set<String> NAME_SET;
 
-  private final byte bitMask;
+    private final byte bitMask;
 
-  static {
-    // The key is "Mobile Country Code" + "Mobile Network Code".
-    // Note that if the network operator uses MVNO (Mobile Virtual Network Operator),
-    // the network operator provided by TelephonyManager would be the one of their partner's.
-    Map<String, EmojiProviderType> networkOperatorMap = new HashMap<String, EmojiProviderType>();
-    networkOperatorMap.put("44010", DOCOMO);
-    networkOperatorMap.put("44020", SOFTBANK);
-    networkOperatorMap.put("44070", KDDI);
-    NETWORK_OPERATOR_MAP = Collections.unmodifiableMap(networkOperatorMap);
+    static {
+        // The key is "Mobile Country Code" + "Mobile Network Code".
+        // Note that if the network operator uses MVNO (Mobile Virtual Network Operator),
+        // the network operator provided by TelephonyManager would be the one of their partner's.
+        Map<String, EmojiProviderType> networkOperatorMap = new HashMap<String, EmojiProviderType>();
+        networkOperatorMap.put("44010", DOCOMO);
+        networkOperatorMap.put("44020", SOFTBANK);
+        networkOperatorMap.put("44070", KDDI);
+        NETWORK_OPERATOR_MAP = Collections.unmodifiableMap(networkOperatorMap);
 
-    Set<String> nameSet = new HashSet<String>();
-    for (EmojiProviderType emojiProviderType : values()) {
-      nameSet.add(emojiProviderType.name());
-    }
-    NAME_SET = Collections.unmodifiableSet(nameSet);
-  }
-
-  private EmojiProviderType(byte bitMask) {
-    this.bitMask = bitMask;
-  }
-
-  public byte getBitMask() {
-    return bitMask;
-  }
-
-  /**
-   * Detects emoji provider type and sets it to the given {@code sharedPreferences},
-   * if necessary based on the Mobile Network Code provided by {@code telephonyManager}.
-   * If the {@code sharedPreferences} is {@code null}, or already has valid emoji provider type,
-   * just does nothing.
-   *
-   * Note: if the new detected emoji provider type is set to the {@code sharedPreferences}
-   * and if it has registered callbacks, of course, they will be invoked as usual.
-   */
-  public static void maybeSetDetectedEmojiProviderType(
-      @Nullable SharedPreferences sharedPreferences, TelephonyManagerInterface telephonyManager) {
-    Preconditions.checkNotNull(telephonyManager);
-
-    if (sharedPreferences == null) {
-      return;
+        Set<String> nameSet = new HashSet<String>();
+        for (EmojiProviderType emojiProviderType : values()) {
+            nameSet.add(emojiProviderType.name());
+        }
+        NAME_SET = Collections.unmodifiableSet(nameSet);
     }
 
-    // First, check if the emoji provider has already set to the preference.
-    String currentProviderTypeString =
-        sharedPreferences.getString(PreferenceUtil.PREF_EMOJI_PROVIDER_TYPE, null);
-    if (NAME_SET.contains(currentProviderTypeString) && !currentProviderTypeString.equals("NONE")) {
-      // Found the valid value.
-      return;
+    EmojiProviderType(byte bitMask) {
+        this.bitMask = bitMask;
     }
 
-    // Here, the EmojiProviderType hasn't set yet, so detect emoji provider.
-    EmojiProviderType detectedType =
-        detectEmojiProviderTypeByMobileNetworkOperator(telephonyManager);
-    sharedPreferences.edit()
-        .putString(PreferenceUtil.PREF_EMOJI_PROVIDER_TYPE, detectedType.name())
-        .commit();
-    MozcLog.i("RUN EMOJI PROVIDER DETECTION: " + detectedType);
-  }
+    public byte getBitMask() {
+        return bitMask;
+    }
 
-  /**
-   * @return EmojiProviderType, including NONE. NONE if the detection fails.
-   */
-  private static EmojiProviderType detectEmojiProviderTypeByMobileNetworkOperator(
-      TelephonyManagerInterface telephonyManager) {
-    Preconditions.checkNotNull(telephonyManager);
+    /**
+     * Detects emoji provider type and sets it to the given {@code sharedPreferences},
+     * if necessary based on the Mobile Network Code provided by {@code telephonyManager}.
+     * If the {@code sharedPreferences} is {@code null}, or already has valid emoji provider type,
+     * just does nothing.
+     * <p>
+     * Note: if the new detected emoji provider type is set to the {@code sharedPreferences}
+     * and if it has registered callbacks, of course, they will be invoked as usual.
+     */
+    public static void maybeSetDetectedEmojiProviderType(
+            @Nullable SharedPreferences sharedPreferences, TelephonyManagerInterface telephonyManager) {
+        Preconditions.checkNotNull(telephonyManager);
 
-    // TODO(hsumita): Consider to make the default value UNICODE.
-    return MoreObjects.firstNonNull(NETWORK_OPERATOR_MAP.get(telephonyManager.getNetworkOperator()),
-                                NONE);
-  }
+        if (sharedPreferences == null) {
+            return;
+        }
+
+        // First, check if the emoji provider has already set to the preference.
+        String currentProviderTypeString =
+                sharedPreferences.getString(PreferenceUtil.PREF_EMOJI_PROVIDER_TYPE, null);
+        if (NAME_SET.contains(currentProviderTypeString) && !currentProviderTypeString.equals("NONE")) {
+            // Found the valid value.
+            return;
+        }
+
+        // Here, the EmojiProviderType hasn't set yet, so detect emoji provider.
+        EmojiProviderType detectedType =
+                detectEmojiProviderTypeByMobileNetworkOperator(telephonyManager);
+        sharedPreferences.edit()
+                .putString(PreferenceUtil.PREF_EMOJI_PROVIDER_TYPE, detectedType.name())
+                .commit();
+        MozcLog.i("RUN EMOJI PROVIDER DETECTION: " + detectedType);
+    }
+
+    /**
+     * @return EmojiProviderType, including NONE. NONE if the detection fails.
+     */
+    private static EmojiProviderType detectEmojiProviderTypeByMobileNetworkOperator(
+            TelephonyManagerInterface telephonyManager) {
+        Preconditions.checkNotNull(telephonyManager);
+
+        // TODO(hsumita): Consider to make the default value UNICODE.
+        return MoreObjects.firstNonNull(NETWORK_OPERATOR_MAP.get(telephonyManager.getNetworkOperator()),
+                NONE);
+    }
 }

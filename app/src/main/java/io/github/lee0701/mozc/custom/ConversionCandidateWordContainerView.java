@@ -29,27 +29,26 @@
 
 package io.github.lee0701.mozc.custom;
 
-import io.github.lee0701.mozc.custom.CandidateView.ConversionCandidateWordView;
-import io.github.lee0701.mozc.custom.R;
-
-import io.github.lee0701.mozc.custom.ui.ConversionCandidateLayouter;
-import com.google.common.base.Preconditions;
-
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.ViewGroup;
 import android.widget.ToggleButton;
 
+import com.google.common.base.Preconditions;
+
+import io.github.lee0701.mozc.custom.CandidateView.ConversionCandidateWordView;
+import io.github.lee0701.mozc.custom.ui.ConversionCandidateLayouter;
+
 /**
  * A container (ViewGroup) of candidate word view and input frame fold button.
- *
+ * <p>
  * The fold button should be laid out based on candidate word view's internal state
  * (candidate layouter), which is determined at layout flow.
  * The initial implementation sets the button's layout parameter from onLayout method
  * but setting layout parameter on layout flow (e.g. in onLayout() and onSizeChanged())
  * causes unexpected behavior (e.g. infinite loop).
  * This class is introduced to solve this issue.
- *
+ * <p>
  * This class is a simple ViewGroup. The layout algorithm is fixed (layout .xml file doesn't affect
  * anything) so {@link #onMeasure(int, int)} is omitted.
  * First, candidate word view fills all the view.
@@ -61,46 +60,46 @@ import android.widget.ToggleButton;
  */
 public class ConversionCandidateWordContainerView extends ViewGroup {
 
-  private float foldingIconSize;
+    private float foldingIconSize;
 
-  public ConversionCandidateWordContainerView(
-      Context context, AttributeSet attrs, int defStyle) {
-    super(context, attrs, defStyle);
-  }
-
-  public ConversionCandidateWordContainerView(Context context, AttributeSet attrs) {
-    super(context, attrs);
-  }
-
-  public ConversionCandidateWordContainerView(Context context) {
-    super(context);
-  }
-
-  void setCandidateTextDimension(float candidateTextSize) {
-    Preconditions.checkArgument(candidateTextSize > 0);
-
-    foldingIconSize = getResources().getDimension(R.dimen.candidate_fold_icon_width);
-  }
-
-  @Override
-  protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-    // Note: Don't use getMeasuredHeight/Width for this and children because #onMeasure
-    //       is omitted so they return invalid value.
-    ConversionCandidateWordView candidateWordView =
-        ConversionCandidateWordView.class.cast(findViewById(R.id.candidate_word_view));
-    candidateWordView.layout(left, top, right, bottom);
-    ToggleButton inputFrameFoldButton =
-        ToggleButton.class.cast(findViewById(R.id.input_frame_fold_button));
-    if (inputFrameFoldButton.getVisibility() != VISIBLE) {
-      return;
+    public ConversionCandidateWordContainerView(
+            Context context, AttributeSet attrs, int defStyle) {
+        super(context, attrs, defStyle);
     }
 
-    ConversionCandidateLayouter layouter = candidateWordView.getCandidateLayouter();
-    float topMargin = (layouter.getRowHeight() - foldingIconSize) / 2;
-    float rightMargin = (layouter.getChunkWidth() - foldingIconSize) / 2;
-    inputFrameFoldButton.layout((int) (right - rightMargin - foldingIconSize),
-                                (int) (top + topMargin),
-                                (int) (right - rightMargin),
-                                (int) (top + topMargin + foldingIconSize));
-  }
+    public ConversionCandidateWordContainerView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+    }
+
+    public ConversionCandidateWordContainerView(Context context) {
+        super(context);
+    }
+
+    void setCandidateTextDimension(float candidateTextSize) {
+        Preconditions.checkArgument(candidateTextSize > 0);
+
+        foldingIconSize = getResources().getDimension(R.dimen.candidate_fold_icon_width);
+    }
+
+    @Override
+    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+        // Note: Don't use getMeasuredHeight/Width for this and children because #onMeasure
+        //       is omitted so they return invalid value.
+        ConversionCandidateWordView candidateWordView =
+                (ConversionCandidateWordView) findViewById(R.id.candidate_word_view);
+        candidateWordView.layout(left, top, right, bottom);
+        ToggleButton inputFrameFoldButton =
+                (ToggleButton) findViewById(R.id.input_frame_fold_button);
+        if (inputFrameFoldButton.getVisibility() != VISIBLE) {
+            return;
+        }
+
+        ConversionCandidateLayouter layouter = candidateWordView.getCandidateLayouter();
+        float topMargin = (layouter.getRowHeight() - foldingIconSize) / 2;
+        float rightMargin = (layouter.getChunkWidth() - foldingIconSize) / 2;
+        inputFrameFoldButton.layout((int) (right - rightMargin - foldingIconSize),
+                (int) (top + topMargin),
+                (int) (right - rightMargin),
+                (int) (top + topMargin + foldingIconSize));
+    }
 }

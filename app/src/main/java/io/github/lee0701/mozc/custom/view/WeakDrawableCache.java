@@ -29,11 +29,11 @@
 
 package io.github.lee0701.mozc.custom.view;
 
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
-
 import android.graphics.drawable.Drawable;
 import android.util.SparseArray;
+
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
@@ -46,60 +46,61 @@ import java.lang.ref.WeakReference;
  */
 public class WeakDrawableCache {
 
-  private static class WeakEntry extends WeakReference<Drawable> {
+    private static class WeakEntry extends WeakReference<Drawable> {
 
-    final Integer key;
-    WeakEntry(Integer key, Drawable value, ReferenceQueue<? super Drawable> queue) {
-      super(value, queue);
-      this.key = key;
+        final Integer key;
+
+        WeakEntry(Integer key, Drawable value, ReferenceQueue<? super Drawable> queue) {
+            super(value, queue);
+            this.key = key;
+        }
     }
-  }
 
-  private final ReferenceQueue<Drawable> queue = new ReferenceQueue<Drawable>();
-  private final SparseArray<WeakEntry> map = new SparseArray<WeakEntry>(128);
+    private final ReferenceQueue<Drawable> queue = new ReferenceQueue<Drawable>();
+    private final SparseArray<WeakEntry> map = new SparseArray<WeakEntry>(128);
 
-  private void cleanUp() {
-    while (true) {
-      WeakEntry reference = WeakEntry.class.cast(queue.poll());
-      if (reference == null) {
-        return;
-      }
-      map.remove(reference.key);
+    private void cleanUp() {
+        while (true) {
+            WeakEntry reference = (WeakEntry) queue.poll();
+            if (reference == null) {
+                return;
+            }
+            map.remove(reference.key);
+        }
     }
-  }
 
-  /**
-   * Put the {@code drawable} to this cache whose resource id is {@code key}.
-   */
-  public void put(Integer key, Drawable value) {
-    Preconditions.checkNotNull(key);
-    Preconditions.checkNotNull(value);
-    cleanUp();
-    map.put(key, new WeakEntry(key, value, queue));
-  }
-
-  /**
-   * Returns {@code Drawable} instance for the {@code key}, or {@code null} if this doesn't
-   * contain the corresponding {@code Drawable}.
-   */
-  public Optional<Drawable> get(Integer key) {
-    cleanUp();
-    WeakEntry entry = map.get(Preconditions.checkNotNull(key));
-    // entry.get() may return null.
-    return Optional.fromNullable(entry == null ? null : entry.get());
-  }
-
-  /**
-   * Clears the cache content.
-   */
-  public void clear() {
-    map.clear();
-
-    // Clear the queue.
-    while (true) {
-      if (queue.poll() == null) {
-        break;
-      }
+    /**
+     * Put the {@code drawable} to this cache whose resource id is {@code key}.
+     */
+    public void put(Integer key, Drawable value) {
+        Preconditions.checkNotNull(key);
+        Preconditions.checkNotNull(value);
+        cleanUp();
+        map.put(key, new WeakEntry(key, value, queue));
     }
-  }
+
+    /**
+     * Returns {@code Drawable} instance for the {@code key}, or {@code null} if this doesn't
+     * contain the corresponding {@code Drawable}.
+     */
+    public Optional<Drawable> get(Integer key) {
+        cleanUp();
+        WeakEntry entry = map.get(Preconditions.checkNotNull(key));
+        // entry.get() may return null.
+        return Optional.fromNullable(entry == null ? null : entry.get());
+    }
+
+    /**
+     * Clears the cache content.
+     */
+    public void clear() {
+        map.clear();
+
+        // Clear the queue.
+        while (true) {
+            if (queue.poll() == null) {
+                break;
+            }
+        }
+    }
 }

@@ -29,8 +29,9 @@
 
 package io.github.lee0701.mozc.custom;
 
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidateWindow.CandidateWord;
 import com.google.common.base.Optional;
+
+import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidateWindow.CandidateWord;
 
 /**
  * Callback interface to handle candidate selection.
@@ -38,11 +39,11 @@ import com.google.common.base.Optional;
  */
 public interface CandidateSelectListener {
 
-  /**
-   * Called {@code onCandidateSelected}, when a candidate is selected by user's action.
-   *
-   * @param candidateWord selected word
-   * @param rowIndex index of row in which the selected word is. If absent no stats are sent.
-   */
-  public void onCandidateSelected(CandidateWord candidateWord, Optional<Integer> rowIndex);
+    /**
+     * Called {@code onCandidateSelected}, when a candidate is selected by user's action.
+     *
+     * @param candidateWord selected word
+     * @param rowIndex      index of row in which the selected word is. If absent no stats are sent.
+     */
+    void onCandidateSelected(CandidateWord candidateWord, Optional<Integer> rowIndex);
 }

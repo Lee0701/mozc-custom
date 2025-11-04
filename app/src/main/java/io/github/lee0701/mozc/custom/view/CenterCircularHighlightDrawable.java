@@ -40,43 +40,43 @@ import android.graphics.Shader.TileMode;
  *
  */
 public class CenterCircularHighlightDrawable extends BaseBackgroundDrawable {
-  // According to the original design mock, the ratio of radius to height is 0.23.
-  private static final float RADIUS_RATIO = 0.23f;
+    // According to the original design mock, the ratio of radius to height is 0.23.
+    private static final float RADIUS_RATIO = 0.23f;
 
-  private final int baseColor;
-  private final int shadeColor;
+    private final int baseColor;
+    private final int shadeColor;
 
-  private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-  private float centerX;
-  private float centerY;
-  private float radius;
+    private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private float centerX;
+    private float centerY;
+    private float radius;
 
-  public CenterCircularHighlightDrawable(
-      int leftPadding, int topPadding, int rightPadding, int bottomPadding,
-      int baseColor, int shadeColor) {
-    super(leftPadding, topPadding, rightPadding, bottomPadding);
-    this.baseColor = baseColor;
-    this.shadeColor = shadeColor;
-  }
+    public CenterCircularHighlightDrawable(
+            int leftPadding, int topPadding, int rightPadding, int bottomPadding,
+            int baseColor, int shadeColor) {
+        super(leftPadding, topPadding, rightPadding, bottomPadding);
+        this.baseColor = baseColor;
+        this.shadeColor = shadeColor;
+    }
 
-  @Override
-  public void draw(Canvas canvas) {
-    canvas.drawCircle(centerX, centerY, radius, paint);
-  }
+    @Override
+    public void draw(Canvas canvas) {
+        canvas.drawCircle(centerX, centerY, radius, paint);
+    }
 
-  @Override
-  protected void onBoundsChange(Rect rect) {
-    super.onBoundsChange(rect);
-    Rect canvasRect = getCanvasRect();
-    centerX = canvasRect.exactCenterX();
-    centerY = canvasRect.exactCenterY();
-    radius = canvasRect.height() * RADIUS_RATIO;
+    @Override
+    protected void onBoundsChange(Rect rect) {
+        super.onBoundsChange(rect);
+        Rect canvasRect = getCanvasRect();
+        centerX = canvasRect.exactCenterX();
+        centerY = canvasRect.exactCenterY();
+        radius = canvasRect.height() * RADIUS_RATIO;
 
-    // According to the original design mock, the circle has inner shadow,
-    // whose width is about 20% of the radius.
-    paint.setShader(new RadialGradient(centerX, centerY, radius,
-                                       new int[] { baseColor, shadeColor },
-                                       new float[] { 0.8f, 1.0f },
-                                       TileMode.CLAMP));
-  }
+        // According to the original design mock, the circle has inner shadow,
+        // whose width is about 20% of the radius.
+        paint.setShader(new RadialGradient(centerX, centerY, radius,
+                new int[]{baseColor, shadeColor},
+                new float[]{0.8f, 1.0f},
+                TileMode.CLAMP));
+    }
 }

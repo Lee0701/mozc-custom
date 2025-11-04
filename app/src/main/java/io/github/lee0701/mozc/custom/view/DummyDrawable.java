@@ -40,43 +40,44 @@ import android.graphics.drawable.Drawable;
  */
 public class DummyDrawable extends Drawable {
 
-  private static final DummyDrawable theInstance = new DummyDrawable();
+    private static final DummyDrawable theInstance = new DummyDrawable();
 
-  public static DummyDrawable getInstance() {
-    return theInstance;
-  }
-
-  private DummyDrawable() {}
-
-  @Override
-  public void draw(Canvas canvas) {
-  }
-
-  @Override
-  public int getOpacity() {
-    return 0;
-  }
-
-  @Override
-  public void setAlpha(int alpha) {
-  }
-
-  @Override
-  public void setColorFilter(ColorFilter cf) {
-  }
-
-  @Override
-  public ConstantState getConstantState() {
-    return new ConstantState() {
-      @Override
-      public Drawable newDrawable() {
+    public static DummyDrawable getInstance() {
         return theInstance;
-      }
+    }
 
-      @Override
-      public int getChangingConfigurations() {
+    private DummyDrawable() {
+    }
+
+    @Override
+    public void draw(Canvas canvas) {
+    }
+
+    @Override
+    public int getOpacity() {
         return 0;
-      }
-    };
-  }
+    }
+
+    @Override
+    public void setAlpha(int alpha) {
+    }
+
+    @Override
+    public void setColorFilter(ColorFilter cf) {
+    }
+
+    @Override
+    public ConstantState getConstantState() {
+        return new ConstantState() {
+            @Override
+            public Drawable newDrawable() {
+                return theInstance;
+            }
+
+            @Override
+            public int getChangingConfigurations() {
+                return 0;
+            }
+        };
+    }
 }

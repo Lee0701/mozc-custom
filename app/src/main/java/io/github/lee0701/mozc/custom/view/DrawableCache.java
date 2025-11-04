@@ -29,12 +29,12 @@
 
 package io.github.lee0701.mozc.custom.view;
 
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
-
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.util.SparseArray;
+
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 
 /**
  * Cache of android's Drawable instances.
@@ -42,49 +42,49 @@ import android.util.SparseArray;
  */
 public class DrawableCache {
 
-  private final SparseArray<Drawable> cacheMap = new SparseArray<Drawable>(128);
-  private Skin skin = Skin.getFallbackInstance();
-  private final Resources resources;
+    private final SparseArray<Drawable> cacheMap = new SparseArray<Drawable>(128);
+    private Skin skin = Skin.getFallbackInstance();
+    private final Resources resources;
 
-  public DrawableCache(Resources resources) {
-    this.resources = Preconditions.checkNotNull(resources);
-  }
-
-  public void setSkin(Skin skin) {
-    Preconditions.checkNotNull(skin);
-    if (this.skin.equals(skin)) {
-      return;
+    public DrawableCache(Resources resources) {
+        this.resources = Preconditions.checkNotNull(resources);
     }
 
-    this.skin = skin;
-    cacheMap.clear();
-  }
+    public void setSkin(Skin skin) {
+        Preconditions.checkNotNull(skin);
+        if (this.skin.equals(skin)) {
+            return;
+        }
 
-  /**
-   * First, looks up cache data in this instance, and returns the value if found.
-   * If not found, tries to load {@code Drawable} instance from resources given via the constructor,
-   * stores it into this instance, and returns it.
-   */
-  public Optional<Drawable> getDrawable(int resourceId) {
-    if (resourceId == 0) {
-      // 0 is invalid resource id.
-      return Optional.<Drawable>absent();
+        this.skin = skin;
+        cacheMap.clear();
     }
 
-    Integer key = Integer.valueOf(resourceId);
-    Optional<Drawable> drawable = Optional.fromNullable(cacheMap.get(key));
-    if (!drawable.isPresent()) {
-      drawable = Optional.of(
-          skin.getDrawable(resources, resourceId).getConstantState().newDrawable());
-      cacheMap.put(key, drawable.get());
-    }
-    return drawable;
-  }
+    /**
+     * First, looks up cache data in this instance, and returns the value if found.
+     * If not found, tries to load {@code Drawable} instance from resources given via the constructor,
+     * stores it into this instance, and returns it.
+     */
+    public Optional<Drawable> getDrawable(int resourceId) {
+        if (resourceId == 0) {
+            // 0 is invalid resource id.
+            return Optional.absent();
+        }
 
-  /**
-   * Clears all {@code Drawable}s stored in this instance.
-   */
-  public void clear() {
-    cacheMap.clear();
-  }
+        Integer key = Integer.valueOf(resourceId);
+        Optional<Drawable> drawable = Optional.fromNullable(cacheMap.get(key));
+        if (!drawable.isPresent()) {
+            drawable = Optional.of(
+                    skin.getDrawable(resources, resourceId).getConstantState().newDrawable());
+            cacheMap.put(key, drawable.get());
+        }
+        return drawable;
+    }
+
+    /**
+     * Clears all {@code Drawable}s stored in this instance.
+     */
+    public void clear() {
+        cacheMap.clear();
+    }
 }

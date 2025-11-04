@@ -34,10 +34,9 @@ import android.graphics.ComposeShader;
 import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.PorterDuff.Mode;
 import android.graphics.Rect;
 import android.graphics.Shader;
-import android.graphics.PorterDuff.Mode;
-import android.util.FloatMath;
 
 /**
  * Drawable to render a triangular highlight, whose vertices are the center and two adjacent
@@ -45,109 +44,109 @@ import android.util.FloatMath;
  *
  */
 public class TriangularHighlightDrawable extends BaseBackgroundDrawable {
-  public enum HighlightDirection {
-    LEFT, UP, RIGHT, DOWN,
-  }
-
-  // According to the original design mock, the ratio of the inner shadow width is about 0.046
-  // to height.
-  private static final float SHADE_LENGTH_RATIO = 0.046f;
-
-  private int baseColor;
-  private int shadeColor;
-
-  private final HighlightDirection direction;
-  private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-  private final Path path = new Path();
-
-  public TriangularHighlightDrawable(
-      int leftPadding, int topPadding, int rightPadding, int bottomPadding,
-      int baseColor, int shadeColor, HighlightDirection direction) {
-    super(leftPadding, topPadding, rightPadding, bottomPadding);
-    this.baseColor = baseColor;
-    this.shadeColor = shadeColor;
-    this.direction = direction;
-  }
-
-  @Override
-  public void draw(Canvas canvas) {
-    canvas.drawPath(path, paint);
-  }
-
-  @Override
-  protected void onBoundsChange(Rect bounds) {
-    super.onBoundsChange(bounds);
-    Rect canvasRect = getCanvasRect();
-
-    switch (direction) {
-      case LEFT:
-        reset(canvasRect.exactCenterX(), canvasRect.exactCenterY(),
-              canvasRect.left, canvasRect.top, canvasRect.left, canvasRect.bottom,
-              canvasRect.height() * SHADE_LENGTH_RATIO);
-        break;
-      case UP:
-        reset(canvasRect.exactCenterX(), canvasRect.exactCenterY(),
-              canvasRect.right, canvasRect.top, canvasRect.left, canvasRect.top,
-              canvasRect.height() * SHADE_LENGTH_RATIO);
-        break;
-      case RIGHT:
-        reset(canvasRect.exactCenterX(), canvasRect.exactCenterY(),
-              canvasRect.right, canvasRect.bottom, canvasRect.right, canvasRect.top,
-              canvasRect.height() * SHADE_LENGTH_RATIO);
-        break;
-      case DOWN:
-        reset(canvasRect.exactCenterX(), canvasRect.exactCenterY(),
-              canvasRect.left, canvasRect.bottom, canvasRect.right, canvasRect.bottom,
-              canvasRect.height() * SHADE_LENGTH_RATIO);
-        break;
-      default:
-        throw new AssertionError();
+    public enum HighlightDirection {
+        LEFT, UP, RIGHT, DOWN,
     }
-  }
 
-  /**
-   * Reset the internal paint and path based on given coordinates and shade's length.
-   * Note that it is necessary that the order of (centerX, centerY)-(x1, y1)-(x2, y2)
-   * is counter-clockwise.
-   */
-  private void reset(
-      float centerX, float centerY, int x1, int y1, int x2, int y2, float shadeLength) {
-    resetPaint(centerX, centerY, x1, y1, x2, y2, shadeLength);
-    resetPath(centerX, centerY, x1, y1, x2, y2);
-  }
+    // According to the original design mock, the ratio of the inner shadow width is about 0.046
+    // to height.
+    private static final float SHADE_LENGTH_RATIO = 0.046f;
 
-  private void resetPaint(
-      float centerX, float centerY, int x1, int y1, int x2, int y2, float shadeLength) {
-    float dx1 = x1 - centerX;
-    float dy1 = y1 - centerY;
+    private final int baseColor;
+    private final int shadeColor;
 
-    float shadeLengthRatio = shadeLength / (float) Math.sqrt(dx1 * dx1 + dy1 * dy1);
-    float nx1 = dy1 * shadeLengthRatio;
-    float ny1 = -dx1 * shadeLengthRatio;
+    private final HighlightDirection direction;
+    private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Path path = new Path();
 
-    LinearGradient gradient1 = new LinearGradient(
-        centerX, centerY, centerX + nx1, centerY + ny1,
-        shadeColor, baseColor, Shader.TileMode.CLAMP);
+    public TriangularHighlightDrawable(
+            int leftPadding, int topPadding, int rightPadding, int bottomPadding,
+            int baseColor, int shadeColor, HighlightDirection direction) {
+        super(leftPadding, topPadding, rightPadding, bottomPadding);
+        this.baseColor = baseColor;
+        this.shadeColor = shadeColor;
+        this.direction = direction;
+    }
 
-    float dx2 = x2 - centerX;
-    float dy2 = y2 - centerY;
+    @Override
+    public void draw(Canvas canvas) {
+        canvas.drawPath(path, paint);
+    }
 
-    float nx2 = -dy2 * shadeLengthRatio;
-    float ny2 = dx2 * shadeLengthRatio;
+    @Override
+    protected void onBoundsChange(Rect bounds) {
+        super.onBoundsChange(bounds);
+        Rect canvasRect = getCanvasRect();
 
-    LinearGradient gradient2 = new LinearGradient(
-        centerX, centerY, centerX + nx2, centerY + ny2,
-        shadeColor, baseColor, Shader.TileMode.CLAMP);
+        switch (direction) {
+            case LEFT:
+                reset(canvasRect.exactCenterX(), canvasRect.exactCenterY(),
+                        canvasRect.left, canvasRect.top, canvasRect.left, canvasRect.bottom,
+                        canvasRect.height() * SHADE_LENGTH_RATIO);
+                break;
+            case UP:
+                reset(canvasRect.exactCenterX(), canvasRect.exactCenterY(),
+                        canvasRect.right, canvasRect.top, canvasRect.left, canvasRect.top,
+                        canvasRect.height() * SHADE_LENGTH_RATIO);
+                break;
+            case RIGHT:
+                reset(canvasRect.exactCenterX(), canvasRect.exactCenterY(),
+                        canvasRect.right, canvasRect.bottom, canvasRect.right, canvasRect.top,
+                        canvasRect.height() * SHADE_LENGTH_RATIO);
+                break;
+            case DOWN:
+                reset(canvasRect.exactCenterX(), canvasRect.exactCenterY(),
+                        canvasRect.left, canvasRect.bottom, canvasRect.right, canvasRect.bottom,
+                        canvasRect.height() * SHADE_LENGTH_RATIO);
+                break;
+            default:
+                throw new AssertionError();
+        }
+    }
 
-    paint.setShader(new ComposeShader(gradient1, gradient2, Mode.DARKEN));
-  }
+    /**
+     * Reset the internal paint and path based on given coordinates and shade's length.
+     * Note that it is necessary that the order of (centerX, centerY)-(x1, y1)-(x2, y2)
+     * is counter-clockwise.
+     */
+    private void reset(
+            float centerX, float centerY, int x1, int y1, int x2, int y2, float shadeLength) {
+        resetPaint(centerX, centerY, x1, y1, x2, y2, shadeLength);
+        resetPath(centerX, centerY, x1, y1, x2, y2);
+    }
 
-  private void resetPath(float centerX, float centerY, int x1, int y1, int x2, int y2) {
-    // Create triangle path.
-    path.reset();
-    path.moveTo(centerX, centerY);
-    path.lineTo(x1, y1);
-    path.lineTo(x2, y2);
-    path.close();
-  }
+    private void resetPaint(
+            float centerX, float centerY, int x1, int y1, int x2, int y2, float shadeLength) {
+        float dx1 = x1 - centerX;
+        float dy1 = y1 - centerY;
+
+        float shadeLengthRatio = shadeLength / (float) Math.sqrt(dx1 * dx1 + dy1 * dy1);
+        float nx1 = dy1 * shadeLengthRatio;
+        float ny1 = -dx1 * shadeLengthRatio;
+
+        LinearGradient gradient1 = new LinearGradient(
+                centerX, centerY, centerX + nx1, centerY + ny1,
+                shadeColor, baseColor, Shader.TileMode.CLAMP);
+
+        float dx2 = x2 - centerX;
+        float dy2 = y2 - centerY;
+
+        float nx2 = -dy2 * shadeLengthRatio;
+        float ny2 = dx2 * shadeLengthRatio;
+
+        LinearGradient gradient2 = new LinearGradient(
+                centerX, centerY, centerX + nx2, centerY + ny2,
+                shadeColor, baseColor, Shader.TileMode.CLAMP);
+
+        paint.setShader(new ComposeShader(gradient1, gradient2, Mode.DARKEN));
+    }
+
+    private void resetPath(float centerX, float centerY, int x1, int y1, int x2, int y2) {
+        // Create triangle path.
+        path.reset();
+        path.moveTo(centerX, centerY);
+        path.lineTo(x1, y1);
+        path.lineTo(x2, y2);
+        path.close();
+    }
 }

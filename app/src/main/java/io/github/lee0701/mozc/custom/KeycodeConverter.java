@@ -29,128 +29,130 @@
 
 package io.github.lee0701.mozc.custom;
 
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.KeyEvent.ModifierKey;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.KeyEvent.SpecialKey;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 
+import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands;
+import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.KeyEvent.ModifierKey;
+import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.KeyEvent.SpecialKey;
+
 /**
  * Converts Androids's KeyEvent to Mozc's KeyEvent.
- *
+ * <p>
  * Because Mozc to Android conversion is impossible (by information lack), such
  * feature is not provided.
  *
  */
 public class KeycodeConverter {
 
-  /**
-   * KeyEventInterface just enables lazy keycode evaluation than android.view.KeyEvent.
-   * This interface is only used from InputMethodService.sendDownUpKeyEvents.
-   * The value returned by {@code getKeyCode} method is used only when a user's input
-   * (from s/w or h/w keyboard) is not consumed by Mozc server.
-   * In such a case we send back the event as a key-code to the framework.
-   * If consumed, {@code getKeyCode} is not invoked.
-   */
-  public interface KeyEventInterface {
-    int getKeyCode();
-    Optional<android.view.KeyEvent> getNativeEvent();
-  }
+    /**
+     * KeyEventInterface just enables lazy keycode evaluation than android.view.KeyEvent.
+     * This interface is only used from InputMethodService.sendDownUpKeyEvents.
+     * The value returned by {@code getKeyCode} method is used only when a user's input
+     * (from s/w or h/w keyboard) is not consumed by Mozc server.
+     * In such a case we send back the event as a key-code to the framework.
+     * If consumed, {@code getKeyCode} is not invoked.
+     */
+    public interface KeyEventInterface {
+        int getKeyCode();
 
-  private static final int ASCII_MIN = 32; // Space.
-  private static final int ASCII_MAX = 126; // Tilde.
-  private static final int NUM_ASCII = ASCII_MAX - ASCII_MIN + 1;
-  // Pre-generated KeyEvents for commonly used key codes.
-  private static final ProtoCommands.KeyEvent[] keyCodeToMozcKeyCodeEvent =
-      new ProtoCommands.KeyEvent[NUM_ASCII];
-
-  public static final ProtoCommands.KeyEvent SPECIALKEY_SPACE =
-      ProtoCommands.KeyEvent.newBuilder().setSpecialKey(SpecialKey.SPACE).build();
-  // TODO(matsuzakit): UP (and DOWN) is no more used. Remove.
-  public static final ProtoCommands.KeyEvent SPECIALKEY_UP =
-      ProtoCommands.KeyEvent.newBuilder().setSpecialKey(SpecialKey.UP).build();
-  public static final ProtoCommands.KeyEvent SPECIALKEY_VIRTUAL_LEFT =
-      ProtoCommands.KeyEvent.newBuilder().setSpecialKey(SpecialKey.VIRTUAL_LEFT).build();
-  public static final ProtoCommands.KeyEvent SPECIALKEY_VIRTUAL_RIGHT =
-      ProtoCommands.KeyEvent.newBuilder().setSpecialKey(SpecialKey.VIRTUAL_RIGHT).build();
-  public static final ProtoCommands.KeyEvent SPECIALKEY_VIRTUAL_ENTER =
-      ProtoCommands.KeyEvent.newBuilder().setSpecialKey(SpecialKey.VIRTUAL_ENTER).build();
-  public static final ProtoCommands.KeyEvent SPECIALKEY_DOWN =
-      ProtoCommands.KeyEvent.newBuilder().setSpecialKey(SpecialKey.DOWN).build();
-  public static final ProtoCommands.KeyEvent SPECIALKEY_BACKSPACE =
-      ProtoCommands.KeyEvent.newBuilder().setSpecialKey(SpecialKey.BACKSPACE).build();
-  public static final ProtoCommands.KeyEvent SPECIALKEY_ESCAPE =
-      ProtoCommands.KeyEvent.newBuilder().setSpecialKey(SpecialKey.ESCAPE).build();
-  public static final ProtoCommands.KeyEvent SPECIALKEY_SHIFT_LEFT =
-      ProtoCommands.KeyEvent.newBuilder()
-          .setSpecialKey(SpecialKey.LEFT)
-          .addModifierKeys(ModifierKey.SHIFT)
-          .build();
-  public static final ProtoCommands.KeyEvent SPECIALKEY_SHIFT_RIGHT =
-      ProtoCommands.KeyEvent.newBuilder()
-          .setSpecialKey(SpecialKey.RIGHT)
-          .addModifierKeys(ModifierKey.SHIFT)
-          .build();
-  public static final ProtoCommands.KeyEvent SPECIALKEY_CTRL_BACKSPACE =
-      ProtoCommands.KeyEvent.newBuilder()
-          .setSpecialKey(SpecialKey.BACKSPACE)
-          .addModifierKeys(ModifierKey.CTRL)
-          .build();
-
-  static {
-    for (int i = ASCII_MIN; i <= ASCII_MAX; ++i) {
-      keyCodeToMozcKeyCodeEvent[i - ASCII_MIN] =
-          ProtoCommands.KeyEvent.newBuilder().setKeyCode(i).build();
+        Optional<android.view.KeyEvent> getNativeEvent();
     }
-  }
 
-  public static ProtoCommands.KeyEvent getMozcKeyEvent(int keyCode) {
-    int offsetKeyCode = keyCode - ASCII_MIN;
-    if (offsetKeyCode >= 0 && offsetKeyCode < NUM_ASCII) {
-      return keyCodeToMozcKeyCodeEvent[offsetKeyCode];
+    private static final int ASCII_MIN = 32; // Space.
+    private static final int ASCII_MAX = 126; // Tilde.
+    private static final int NUM_ASCII = ASCII_MAX - ASCII_MIN + 1;
+    // Pre-generated KeyEvents for commonly used key codes.
+    private static final ProtoCommands.KeyEvent[] keyCodeToMozcKeyCodeEvent =
+            new ProtoCommands.KeyEvent[NUM_ASCII];
+
+    public static final ProtoCommands.KeyEvent SPECIALKEY_SPACE =
+            ProtoCommands.KeyEvent.newBuilder().setSpecialKey(SpecialKey.SPACE).build();
+    // TODO(matsuzakit): UP (and DOWN) is no more used. Remove.
+    public static final ProtoCommands.KeyEvent SPECIALKEY_UP =
+            ProtoCommands.KeyEvent.newBuilder().setSpecialKey(SpecialKey.UP).build();
+    public static final ProtoCommands.KeyEvent SPECIALKEY_VIRTUAL_LEFT =
+            ProtoCommands.KeyEvent.newBuilder().setSpecialKey(SpecialKey.VIRTUAL_LEFT).build();
+    public static final ProtoCommands.KeyEvent SPECIALKEY_VIRTUAL_RIGHT =
+            ProtoCommands.KeyEvent.newBuilder().setSpecialKey(SpecialKey.VIRTUAL_RIGHT).build();
+    public static final ProtoCommands.KeyEvent SPECIALKEY_VIRTUAL_ENTER =
+            ProtoCommands.KeyEvent.newBuilder().setSpecialKey(SpecialKey.VIRTUAL_ENTER).build();
+    public static final ProtoCommands.KeyEvent SPECIALKEY_DOWN =
+            ProtoCommands.KeyEvent.newBuilder().setSpecialKey(SpecialKey.DOWN).build();
+    public static final ProtoCommands.KeyEvent SPECIALKEY_BACKSPACE =
+            ProtoCommands.KeyEvent.newBuilder().setSpecialKey(SpecialKey.BACKSPACE).build();
+    public static final ProtoCommands.KeyEvent SPECIALKEY_ESCAPE =
+            ProtoCommands.KeyEvent.newBuilder().setSpecialKey(SpecialKey.ESCAPE).build();
+    public static final ProtoCommands.KeyEvent SPECIALKEY_SHIFT_LEFT =
+            ProtoCommands.KeyEvent.newBuilder()
+                    .setSpecialKey(SpecialKey.LEFT)
+                    .addModifierKeys(ModifierKey.SHIFT)
+                    .build();
+    public static final ProtoCommands.KeyEvent SPECIALKEY_SHIFT_RIGHT =
+            ProtoCommands.KeyEvent.newBuilder()
+                    .setSpecialKey(SpecialKey.RIGHT)
+                    .addModifierKeys(ModifierKey.SHIFT)
+                    .build();
+    public static final ProtoCommands.KeyEvent SPECIALKEY_CTRL_BACKSPACE =
+            ProtoCommands.KeyEvent.newBuilder()
+                    .setSpecialKey(SpecialKey.BACKSPACE)
+                    .addModifierKeys(ModifierKey.CTRL)
+                    .build();
+
+    static {
+        for (int i = ASCII_MIN; i <= ASCII_MAX; ++i) {
+            keyCodeToMozcKeyCodeEvent[i - ASCII_MIN] =
+                    ProtoCommands.KeyEvent.newBuilder().setKeyCode(i).build();
+        }
     }
-    // FallBack.
-    return ProtoCommands.KeyEvent.newBuilder().setKeyCode(keyCode).build();
-  }
 
-  public static KeyEventInterface getKeyEventInterface(final android.view.KeyEvent keyEvent) {
-    Preconditions.checkNotNull(keyEvent);
-    return new KeyEventInterface() {
+    public static ProtoCommands.KeyEvent getMozcKeyEvent(int keyCode) {
+        int offsetKeyCode = keyCode - ASCII_MIN;
+        if (offsetKeyCode >= 0 && offsetKeyCode < NUM_ASCII) {
+            return keyCodeToMozcKeyCodeEvent[offsetKeyCode];
+        }
+        // FallBack.
+        return ProtoCommands.KeyEvent.newBuilder().setKeyCode(keyCode).build();
+    }
 
-      @Override
-      public int getKeyCode() {
-        return keyEvent.getKeyCode();
-      }
+    public static KeyEventInterface getKeyEventInterface(final android.view.KeyEvent keyEvent) {
+        Preconditions.checkNotNull(keyEvent);
+        return new KeyEventInterface() {
 
-      @Override
-      public Optional<android.view.KeyEvent> getNativeEvent() {
-        return Optional.of(keyEvent);
-      }
-    };
-  }
+            @Override
+            public int getKeyCode() {
+                return keyEvent.getKeyCode();
+            }
 
-  public static KeyEventInterface getKeyEventInterface(final int keyCode) {
-    return new KeyEventInterface() {
+            @Override
+            public Optional<android.view.KeyEvent> getNativeEvent() {
+                return Optional.of(keyEvent);
+            }
+        };
+    }
 
-      @Override
-      public int getKeyCode() {
-        return keyCode;
-      }
+    public static KeyEventInterface getKeyEventInterface(final int keyCode) {
+        return new KeyEventInterface() {
 
-      @Override
-      public Optional<android.view.KeyEvent> getNativeEvent() {
-        return Optional.<android.view.KeyEvent>absent();
-      }
-    };
-  }
+            @Override
+            public int getKeyCode() {
+                return keyCode;
+            }
 
-  public static boolean isMetaKey(android.view.KeyEvent keyEvent) {
-    int keyCode = Preconditions.checkNotNull(keyEvent).getKeyCode();
-    return keyCode == android.view.KeyEvent.KEYCODE_SHIFT_LEFT ||
-        keyCode == android.view.KeyEvent.KEYCODE_SHIFT_RIGHT ||
-        keyCode == android.view.KeyEvent.KEYCODE_CTRL_LEFT ||
-        keyCode == android.view.KeyEvent.KEYCODE_CTRL_RIGHT ||
-        keyCode == android.view.KeyEvent.KEYCODE_ALT_LEFT ||
-        keyCode == android.view.KeyEvent.KEYCODE_ALT_RIGHT;
-  }
+            @Override
+            public Optional<android.view.KeyEvent> getNativeEvent() {
+                return Optional.absent();
+            }
+        };
+    }
+
+    public static boolean isMetaKey(android.view.KeyEvent keyEvent) {
+        int keyCode = Preconditions.checkNotNull(keyEvent).getKeyCode();
+        return keyCode == android.view.KeyEvent.KEYCODE_SHIFT_LEFT ||
+                keyCode == android.view.KeyEvent.KEYCODE_SHIFT_RIGHT ||
+                keyCode == android.view.KeyEvent.KEYCODE_CTRL_LEFT ||
+                keyCode == android.view.KeyEvent.KEYCODE_CTRL_RIGHT ||
+                keyCode == android.view.KeyEvent.KEYCODE_ALT_LEFT ||
+                keyCode == android.view.KeyEvent.KEYCODE_ALT_RIGHT;
+    }
 }

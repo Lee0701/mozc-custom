@@ -29,11 +29,6 @@
 
 package io.github.lee0701.mozc.custom.view;
 
-import io.github.lee0701.mozc.custom.keyboard.BackgroundDrawableFactory;
-import io.github.lee0701.mozc.custom.R;
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
-
 import android.content.res.Resources;
 import android.graphics.BlurMaskFilter;
 import android.graphics.BlurMaskFilter.Blur;
@@ -50,241 +45,247 @@ import android.graphics.Shader.TileMode;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
+
+import io.github.lee0701.mozc.custom.R;
+import io.github.lee0701.mozc.custom.keyboard.BackgroundDrawableFactory;
+
 /**
  * Factory to produce the buttons for SymbolMajorCategories.
  *
  */
 public class SymbolMajorCategoryButtonDrawableFactory {
 
-  private interface PathFactory {
-    Path newInstance(Rect bounds);
-  }
-
-  private static class LeftButtonPathFactory implements PathFactory {
-    private final float padding;
-    private final float round;
-
-    // Padding is applied to left, top and bottom.
-    // Right doesn't have padding in order to center left/right buttons.
-    LeftButtonPathFactory(float padding, float round) {
-      this.padding = padding;
-      this.round = round;
+    private interface PathFactory {
+        Path newInstance(Rect bounds);
     }
 
-    @Override
-    public Path newInstance(Rect bounds) {
-      Preconditions.checkNotNull(bounds);
-      float left = bounds.left + padding;
-      float top = bounds.top + padding;
-      float right = bounds.right - 2;
-      float bottom = bounds.bottom - 1 - padding;
+    private static class LeftButtonPathFactory implements PathFactory {
+        private final float padding;
+        private final float round;
 
-      Path path = new Path();
-      path.moveTo(right, bottom);
-      path.arcTo(new RectF(left, bottom - round * 2, left + round * 2, bottom), 90, 90);
-      path.arcTo(new RectF(left, top, left + round + 2, top + round * 2), 180, 90);
-      path.lineTo(right, top);
-      path.close();
-
-      return path;
-    }
-  }
-
-  private static class CenterButtonPathFactory implements PathFactory {
-    private final float padding;
-
-    // Padding is applied only to top and bottom.
-    CenterButtonPathFactory(float padding) {
-      this.padding = padding;
-    }
-
-    @Override
-    public Path newInstance(Rect bounds) {
-      Preconditions.checkNotNull(bounds);
-      float left = bounds.left;
-      float top = bounds.top + padding;
-      float right = bounds.right - 2;
-      float bottom = bounds.bottom - 1 - padding;
-
-      Path path = new Path();
-      path.addRect(left, top, right, bottom, Direction.CW);
-      return path;
-    }
-  }
-
-  private static class RightButtonPathFactory implements PathFactory {
-    private final float padding;
-    private final float round;
-
-    // Padding is applied to right, top and bottom.
-    // Left doesn't have padding in order to center left/right buttons.
-    RightButtonPathFactory(float padding, float round) {
-      this.padding = padding;
-      this.round = round;
-    }
-
-    @Override
-    public Path newInstance(Rect bounds) {
-      Preconditions.checkNotNull(bounds);
-      float left = bounds.left;
-      float top = bounds.top + padding;
-      float right = bounds.right - 1 - padding;
-      float bottom = bounds.bottom - 1 - padding;
-
-      Path path = new Path();
-      path.moveTo(left, top);
-      path.arcTo(new RectF(right - round * 2, top, right, top + round * 2), 270, 90);
-      path.arcTo(new RectF(right - round * 2, bottom - round * 2, right, bottom), 0, 90);
-      path.lineTo(left, bottom);
-      path.close();
-
-      return path;
-    }
-  }
-
-  private static class ButtonDrawable extends BaseBackgroundDrawable {
-
-    private static final int BLUR_SIZE = 3;
-
-    private final PathFactory pathFactory;
-    private final int topColor;
-    private final int bottomColor;
-
-    private final Paint backgroundPaint = new Paint();
-    private final Optional<Paint> shadowPaint;
-    private Optional<Path> path = Optional.absent();
-
-    ButtonDrawable(PathFactory pathFactory, int topColor, int bottomColor, int shadowColor) {
-      super(0, 0, 0, 0);  // No padding.
-      this.pathFactory = Preconditions.checkNotNull(pathFactory);
-      this.topColor = topColor;
-      this.bottomColor = bottomColor;
-
-      backgroundPaint.setAntiAlias(true);
-
-      if (Color.alpha(shadowColor) != 0) {
-        shadowPaint = Optional.of(new Paint());
-        shadowPaint.get().setColor(shadowColor);
-        shadowPaint.get().setStyle(Style.FILL);
-        shadowPaint.get().setMaskFilter(new BlurMaskFilter(BLUR_SIZE, Blur.NORMAL));
-      } else {
-        shadowPaint = Optional.absent();
-      }
-    }
-
-    @Override
-    public void draw(Canvas canvas) {
-      if (!path.isPresent()) {
-        return;
-      }
-
-      if (shadowPaint.isPresent()) {
-        int saveCount = canvas.save();
-        try {
-          canvas.translate(0, 2);
-          canvas.drawPath(path.get(), shadowPaint.get());
-        } finally {
-          canvas.restoreToCount(saveCount);
+        // Padding is applied to left, top and bottom.
+        // Right doesn't have padding in order to center left/right buttons.
+        LeftButtonPathFactory(float padding, float round) {
+            this.padding = padding;
+            this.round = round;
         }
-      }
 
-      canvas.drawPath(path.get(), backgroundPaint);
+        @Override
+        public Path newInstance(Rect bounds) {
+            Preconditions.checkNotNull(bounds);
+            float left = bounds.left + padding;
+            float top = bounds.top + padding;
+            float right = bounds.right - 2;
+            float bottom = bounds.bottom - 1 - padding;
+
+            Path path = new Path();
+            path.moveTo(right, bottom);
+            path.arcTo(new RectF(left, bottom - round * 2, left + round * 2, bottom), 90, 90);
+            path.arcTo(new RectF(left, top, left + round + 2, top + round * 2), 180, 90);
+            path.lineTo(right, top);
+            path.close();
+
+            return path;
+        }
     }
 
-    @Override
-    protected void onBoundsChange(Rect bounds) {
-      super.onBoundsChange(bounds);
+    private static class CenterButtonPathFactory implements PathFactory {
+        private final float padding;
 
-      if (isCanvasRectEmpty()) {
-        path = Optional.absent();
-        backgroundPaint.setShader(null);
-        return;
-      }
+        // Padding is applied only to top and bottom.
+        CenterButtonPathFactory(float padding) {
+            this.padding = padding;
+        }
 
-      path = Optional.of(pathFactory.newInstance(bounds));
-      backgroundPaint.setShader(new LinearGradient(
-          0, bounds.top, 0, bounds.bottom - 1, topColor, bottomColor, TileMode.CLAMP));
-    }
-  }
+        @Override
+        public Path newInstance(Rect bounds) {
+            Preconditions.checkNotNull(bounds);
+            float left = bounds.left;
+            float top = bounds.top + padding;
+            float right = bounds.right - 2;
+            float bottom = bounds.bottom - 1 - padding;
 
-  private static class EmojiDisableIconDrawable extends BaseBackgroundDrawable {
-
-    private final int size;
-    private final Drawable sourceDrawable;
-
-    EmojiDisableIconDrawable(Resources resources, Drawable sourceDrawable) {
-      super(0, 0, 0, 0);
-      size = Preconditions.checkNotNull(resources).getDimensionPixelSize(
-          R.dimen.symbol_major_emoji_disable_icon_height);
-      sourceDrawable.setBounds(0, 0, size, size);
-      this.sourceDrawable = Preconditions.checkNotNull(sourceDrawable);
+            Path path = new Path();
+            path.addRect(left, top, right, bottom, Direction.CW);
+            return path;
+        }
     }
 
-    @Override
-    public void draw(Canvas canvas) {
-      Rect bounds = getBounds();
+    private static class RightButtonPathFactory implements PathFactory {
+        private final float padding;
+        private final float round;
 
+        // Padding is applied to right, top and bottom.
+        // Left doesn't have padding in order to center left/right buttons.
+        RightButtonPathFactory(float padding, float round) {
+            this.padding = padding;
+            this.round = round;
+        }
 
-      int saveCount = canvas.save();
-      try {
-        canvas.translate(bounds.right - size - 3, bounds.bottom - size - 3);
-        canvas.clipRect(0, 0, size, size);
-        sourceDrawable.draw(canvas);
-      } finally {
-        canvas.restoreToCount(saveCount);
-      }
+        @Override
+        public Path newInstance(Rect bounds) {
+            Preconditions.checkNotNull(bounds);
+            float left = bounds.left;
+            float top = bounds.top + padding;
+            float right = bounds.right - 1 - padding;
+            float bottom = bounds.bottom - 1 - padding;
+
+            Path path = new Path();
+            path.moveTo(left, top);
+            path.arcTo(new RectF(right - round * 2, top, right, top + round * 2), 270, 90);
+            path.arcTo(new RectF(right - round * 2, bottom - round * 2, right, bottom), 0, 90);
+            path.lineTo(left, bottom);
+            path.close();
+
+            return path;
+        }
     }
-  }
 
-  private Skin skin = Skin.getFallbackInstance();
+    private static class ButtonDrawable extends BaseBackgroundDrawable {
 
-  private final Resources resources;
+        private static final int BLUR_SIZE = 3;
 
-  public SymbolMajorCategoryButtonDrawableFactory(Resources resources) {
-    this.resources = Preconditions.checkNotNull(resources);
-  }
+        private final PathFactory pathFactory;
+        private final int topColor;
+        private final int bottomColor;
 
-  public Drawable createLeftButtonDrawable() {
-    return createSelectableDrawableWithPathFactory(
-        new LeftButtonPathFactory(skin.symbolMajorButtonPaddingDimension,
-                                  skin.symbolMajorButtonRoundDimension));
-  }
+        private final Paint backgroundPaint = new Paint();
+        private final Optional<Paint> shadowPaint;
+        private Optional<Path> path = Optional.absent();
 
-  public Drawable createCenterButtonDrawable() {
-    return createSelectableDrawableWithPathFactory(
-        new CenterButtonPathFactory(skin.symbolMajorButtonPaddingDimension));
-  }
+        ButtonDrawable(PathFactory pathFactory, int topColor, int bottomColor, int shadowColor) {
+            super(0, 0, 0, 0);  // No padding.
+            this.pathFactory = Preconditions.checkNotNull(pathFactory);
+            this.topColor = topColor;
+            this.bottomColor = bottomColor;
 
-  public Drawable createRightButtonDrawable(boolean emojiEnabled) {
-    Drawable drawable = createSelectableDrawableWithPathFactory(
-        new RightButtonPathFactory(skin.symbolMajorButtonPaddingDimension,
-                                   skin.symbolMajorButtonRoundDimension));
-    if (emojiEnabled) {
-      return drawable;
+            backgroundPaint.setAntiAlias(true);
+
+            if (Color.alpha(shadowColor) != 0) {
+                shadowPaint = Optional.of(new Paint());
+                shadowPaint.get().setColor(shadowColor);
+                shadowPaint.get().setStyle(Style.FILL);
+                shadowPaint.get().setMaskFilter(new BlurMaskFilter(BLUR_SIZE, Blur.NORMAL));
+            } else {
+                shadowPaint = Optional.absent();
+            }
+        }
+
+        @Override
+        public void draw(Canvas canvas) {
+            if (!path.isPresent()) {
+                return;
+            }
+
+            if (shadowPaint.isPresent()) {
+                int saveCount = canvas.save();
+                try {
+                    canvas.translate(0, 2);
+                    canvas.drawPath(path.get(), shadowPaint.get());
+                } finally {
+                    canvas.restoreToCount(saveCount);
+                }
+            }
+
+            canvas.drawPath(path.get(), backgroundPaint);
+        }
+
+        @Override
+        protected void onBoundsChange(Rect bounds) {
+            super.onBoundsChange(bounds);
+
+            if (isCanvasRectEmpty()) {
+                path = Optional.absent();
+                backgroundPaint.setShader(null);
+                return;
+            }
+
+            path = Optional.of(pathFactory.newInstance(bounds));
+            backgroundPaint.setShader(new LinearGradient(
+                    0, bounds.top, 0, bounds.bottom - 1, topColor, bottomColor, TileMode.CLAMP));
+        }
     }
-    return new LayerDrawable(new Drawable[] {
-        drawable,
-        new EmojiDisableIconDrawable(
-            resources, skin.getDrawable(resources, R.raw.emoji_disable_icon)),
-    });
-  }
 
-  private Drawable createSelectableDrawableWithPathFactory(PathFactory pathFactory) {
-    return BackgroundDrawableFactory.createSelectableDrawable(
-        new ButtonDrawable(pathFactory,
-                           skin.symbolMajorButtonSelectedTopColor,
-                           skin.symbolMajorButtonSelectedBottomColor, 0),
-        Optional.<Drawable>of(BackgroundDrawableFactory.createPressableDrawable(
-            new ButtonDrawable(pathFactory,
-                               skin.symbolMajorButtonPressedTopColor,
-                               skin.symbolMajorButtonPressedBottomColor, 0),
-            Optional.<Drawable>of(new ButtonDrawable(pathFactory,
-                                                     skin.symbolMajorButtonTopColor,
-                                                     skin.symbolMajorButtonBottomColor,
-                                                     skin.symbolMajorButtonShadowColor)))));
-  }
+    private static class EmojiDisableIconDrawable extends BaseBackgroundDrawable {
 
-  public void setSkin(Skin skin) {
-    this.skin = Preconditions.checkNotNull(skin);
-  }
+        private final int size;
+        private final Drawable sourceDrawable;
+
+        EmojiDisableIconDrawable(Resources resources, Drawable sourceDrawable) {
+            super(0, 0, 0, 0);
+            size = Preconditions.checkNotNull(resources).getDimensionPixelSize(
+                    R.dimen.symbol_major_emoji_disable_icon_height);
+            sourceDrawable.setBounds(0, 0, size, size);
+            this.sourceDrawable = Preconditions.checkNotNull(sourceDrawable);
+        }
+
+        @Override
+        public void draw(Canvas canvas) {
+            Rect bounds = getBounds();
+
+
+            int saveCount = canvas.save();
+            try {
+                canvas.translate(bounds.right - size - 3, bounds.bottom - size - 3);
+                canvas.clipRect(0, 0, size, size);
+                sourceDrawable.draw(canvas);
+            } finally {
+                canvas.restoreToCount(saveCount);
+            }
+        }
+    }
+
+    private Skin skin = Skin.getFallbackInstance();
+
+    private final Resources resources;
+
+    public SymbolMajorCategoryButtonDrawableFactory(Resources resources) {
+        this.resources = Preconditions.checkNotNull(resources);
+    }
+
+    public Drawable createLeftButtonDrawable() {
+        return createSelectableDrawableWithPathFactory(
+                new LeftButtonPathFactory(skin.symbolMajorButtonPaddingDimension,
+                        skin.symbolMajorButtonRoundDimension));
+    }
+
+    public Drawable createCenterButtonDrawable() {
+        return createSelectableDrawableWithPathFactory(
+                new CenterButtonPathFactory(skin.symbolMajorButtonPaddingDimension));
+    }
+
+    public Drawable createRightButtonDrawable(boolean emojiEnabled) {
+        Drawable drawable = createSelectableDrawableWithPathFactory(
+                new RightButtonPathFactory(skin.symbolMajorButtonPaddingDimension,
+                        skin.symbolMajorButtonRoundDimension));
+        if (emojiEnabled) {
+            return drawable;
+        }
+        return new LayerDrawable(new Drawable[]{
+                drawable,
+                new EmojiDisableIconDrawable(
+                        resources, skin.getDrawable(resources, R.raw.emoji_disable_icon)),
+        });
+    }
+
+    private Drawable createSelectableDrawableWithPathFactory(PathFactory pathFactory) {
+        return BackgroundDrawableFactory.createSelectableDrawable(
+                new ButtonDrawable(pathFactory,
+                        skin.symbolMajorButtonSelectedTopColor,
+                        skin.symbolMajorButtonSelectedBottomColor, 0),
+                Optional.of(BackgroundDrawableFactory.createPressableDrawable(
+                        new ButtonDrawable(pathFactory,
+                                skin.symbolMajorButtonPressedTopColor,
+                                skin.symbolMajorButtonPressedBottomColor, 0),
+                        Optional.of(new ButtonDrawable(pathFactory,
+                                skin.symbolMajorButtonTopColor,
+                                skin.symbolMajorButtonBottomColor,
+                                skin.symbolMajorButtonShadowColor)))));
+    }
+
+    public void setSkin(Skin skin) {
+        this.skin = Preconditions.checkNotNull(skin);
+    }
 }

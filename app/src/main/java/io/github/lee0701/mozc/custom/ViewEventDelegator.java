@@ -29,19 +29,21 @@
 
 package io.github.lee0701.mozc.custom;
 
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
+
+import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands;
+import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Input.TouchEvent;
+
+import java.util.List;
+
+import javax.annotation.Nullable;
+
 import io.github.lee0701.mozc.custom.FeedbackManager.FeedbackEvent;
 import io.github.lee0701.mozc.custom.KeycodeConverter.KeyEventInterface;
 import io.github.lee0701.mozc.custom.hardwarekeyboard.HardwareKeyboard.CompositionSwitchMode;
 import io.github.lee0701.mozc.custom.keyboard.Keyboard.KeyboardSpecification;
 import io.github.lee0701.mozc.custom.model.SymbolMajorCategory;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Input.TouchEvent;
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
-
-import java.util.List;
-
-import javax.annotation.Nullable;
 
 /**
  * This class delegates all method calls to a ViewEventListener, passed to the constructor.
@@ -64,99 +66,99 @@ import javax.annotation.Nullable;
 @SuppressWarnings("javadoc")
 public abstract class ViewEventDelegator implements ViewEventListener {
 
-  private final ViewEventListener delegated;
+    private final ViewEventListener delegated;
 
-  public ViewEventDelegator(ViewEventListener delegated) {
-    this.delegated = delegated;
-  }
+    public ViewEventDelegator(ViewEventListener delegated) {
+        this.delegated = delegated;
+    }
 
-  @Override
-  public void onKeyEvent(@Nullable ProtoCommands.KeyEvent mozcKeyEvent,
-                         @Nullable KeyEventInterface keyEvent,
-                         @Nullable KeyboardSpecification keyboardSpecification,
-                         List<TouchEvent> touchEventList) {
-    delegated.onKeyEvent(mozcKeyEvent, keyEvent, keyboardSpecification, touchEventList);
-  }
+    @Override
+    public void onKeyEvent(@Nullable ProtoCommands.KeyEvent mozcKeyEvent,
+                           @Nullable KeyEventInterface keyEvent,
+                           @Nullable KeyboardSpecification keyboardSpecification,
+                           List<TouchEvent> touchEventList) {
+        delegated.onKeyEvent(mozcKeyEvent, keyEvent, keyboardSpecification, touchEventList);
+    }
 
-  @Override
-  public void onUndo(List<TouchEvent> touchEventList) {
-    delegated.onUndo(touchEventList);
-  }
+    @Override
+    public void onUndo(List<TouchEvent> touchEventList) {
+        delegated.onUndo(touchEventList);
+    }
 
-  @Override
-  public void onConversionCandidateSelected(int candidateId, Optional<Integer> rowIndex) {
-    delegated.onConversionCandidateSelected(candidateId, Preconditions.checkNotNull(rowIndex));
-  }
+    @Override
+    public void onConversionCandidateSelected(int candidateId, Optional<Integer> rowIndex) {
+        delegated.onConversionCandidateSelected(candidateId, Preconditions.checkNotNull(rowIndex));
+    }
 
-  @Override
-  public void onPageUp() {
-    delegated.onPageUp();
-  }
+    @Override
+    public void onPageUp() {
+        delegated.onPageUp();
+    }
 
-  @Override
-  public void onPageDown() {
-    delegated.onPageDown();
-  }
+    @Override
+    public void onPageDown() {
+        delegated.onPageDown();
+    }
 
-  @Override
-  public void onSymbolCandidateSelected(SymbolMajorCategory majorCategory, String candidate,
-                                        boolean updateHistory) {
-    delegated.onSymbolCandidateSelected(majorCategory, candidate, updateHistory);
-  }
+    @Override
+    public void onSymbolCandidateSelected(SymbolMajorCategory majorCategory, String candidate,
+                                          boolean updateHistory) {
+        delegated.onSymbolCandidateSelected(majorCategory, candidate, updateHistory);
+    }
 
-  @Override
-  public void onFireFeedbackEvent(FeedbackEvent event) {
-    delegated.onFireFeedbackEvent(event);
-  }
+    @Override
+    public void onFireFeedbackEvent(FeedbackEvent event) {
+        delegated.onFireFeedbackEvent(event);
+    }
 
-  @Override
-  public void onSubmitPreedit() {
-    delegated.onSubmitPreedit();
-  }
+    @Override
+    public void onSubmitPreedit() {
+        delegated.onSubmitPreedit();
+    }
 
-  @Override
-  public void onExpandSuggestion() {
-    delegated.onExpandSuggestion();
-  }
+    @Override
+    public void onExpandSuggestion() {
+        delegated.onExpandSuggestion();
+    }
 
-  @Override
-  public void onShowMenuDialog(List<TouchEvent> touchEventList) {
-    delegated.onShowMenuDialog(touchEventList);
-  }
+    @Override
+    public void onShowMenuDialog(List<TouchEvent> touchEventList) {
+        delegated.onShowMenuDialog(touchEventList);
+    }
 
-  @Override
-  public void onShowSymbolInputView(List<TouchEvent> touchEventList) {
-    delegated.onShowSymbolInputView(touchEventList);
-  }
+    @Override
+    public void onShowSymbolInputView(List<TouchEvent> touchEventList) {
+        delegated.onShowSymbolInputView(touchEventList);
+    }
 
-  @Override
-  public void onCloseSymbolInputView() {
-    delegated.onCloseSymbolInputView();
-  }
+    @Override
+    public void onCloseSymbolInputView() {
+        delegated.onCloseSymbolInputView();
+    }
 
-  @Override
-  public void onHardwareKeyboardCompositionModeChange(CompositionSwitchMode mode) {
-    delegated.onHardwareKeyboardCompositionModeChange(mode);
-  }
+    @Override
+    public void onHardwareKeyboardCompositionModeChange(CompositionSwitchMode mode) {
+        delegated.onHardwareKeyboardCompositionModeChange(mode);
+    }
 
-  @Override
-  public void onActionKey() {
-    delegated.onActionKey();
-  }
+    @Override
+    public void onActionKey() {
+        delegated.onActionKey();
+    }
 
-  @Override
-  public void onNarrowModeChanged(boolean newNarrowMode) {
-    delegated.onNarrowModeChanged(newNarrowMode);
-  }
+    @Override
+    public void onNarrowModeChanged(boolean newNarrowMode) {
+        delegated.onNarrowModeChanged(newNarrowMode);
+    }
 
-  @Override
-  public void onUpdateKeyboardLayoutAdjustment(
-      ViewManagerInterface.LayoutAdjustment layoutAdjustment) {
-    delegated.onUpdateKeyboardLayoutAdjustment(layoutAdjustment);
-  }
+    @Override
+    public void onUpdateKeyboardLayoutAdjustment(
+            ViewManagerInterface.LayoutAdjustment layoutAdjustment) {
+        delegated.onUpdateKeyboardLayoutAdjustment(layoutAdjustment);
+    }
 
-  @Override
-  public void onShowMushroomSelectionDialog() {
-    delegated.onShowMushroomSelectionDialog();
-  }
+    @Override
+    public void onShowMushroomSelectionDialog() {
+        delegated.onShowMushroomSelectionDialog();
+    }
 }

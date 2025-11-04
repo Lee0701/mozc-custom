@@ -29,78 +29,78 @@
 
 package io.github.lee0701.mozc.custom.preference;
 
-import io.github.lee0701.mozc.custom.MozcUtil;
-import io.github.lee0701.mozc.custom.R;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
 
 import java.util.List;
 
+import io.github.lee0701.mozc.custom.MozcUtil;
+import io.github.lee0701.mozc.custom.R;
+
 /**
  * Fragment based preference UI for API Level &gt;= 11.
  *
  */
 public abstract class MozcFragmentBasePreferenceActivity extends MozcBasePreferenceActivity {
-  private final PreferencePage preferencePage;
+    private final PreferencePage preferencePage;
 
-  protected MozcFragmentBasePreferenceActivity(PreferencePage preferencePage) {
-    this.preferencePage = preferencePage;
-  }
-
-  @Override
-  protected void onCreate(Bundle savedInstanceState) {
-    // If single-pane is preferred on this device and no fragment is specified,
-    // puts an extra string in order to show the only fragment, "All".
-    // By this, header list will not be shown.
-    // It seems that #onCreate is the only injection point.
-    Intent redirectingIntent =
-        maybeCreateRedirectingIntent(getIntent(), onIsMultiPane(), preferencePage);
-    if (redirectingIntent != null) {
-      setIntent(redirectingIntent);
+    protected MozcFragmentBasePreferenceActivity(PreferencePage preferencePage) {
+        this.preferencePage = preferencePage;
     }
-    super.onCreate(savedInstanceState);
-  }
 
-  static Intent maybeCreateRedirectingIntent(
-      Intent currentIntent, boolean isMultipane, PreferencePage preferencePage) {
-    // See #onCreate to understand what's going.
-    if (currentIntent.getStringExtra(PreferenceActivity.EXTRA_SHOW_FRAGMENT) != null
-        || isMultipane) {
-      return null;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        // If single-pane is preferred on this device and no fragment is specified,
+        // puts an extra string in order to show the only fragment, "All".
+        // By this, header list will not be shown.
+        // It seems that #onCreate is the only injection point.
+        Intent redirectingIntent =
+                maybeCreateRedirectingIntent(getIntent(), onIsMultiPane(), preferencePage);
+        if (redirectingIntent != null) {
+            setIntent(redirectingIntent);
+        }
+        super.onCreate(savedInstanceState);
     }
-    Intent intent = new Intent(currentIntent);
-    intent.putExtra(PreferenceActivity.EXTRA_SHOW_FRAGMENT,
-                    PreferenceBaseFragment.class.getCanonicalName());
-    // Send arguments of a fragment as a bundle.
-    // This is equivalent to below xml.
-    // <preference-headers>...<header ...><extra name="xxxx" value="xxxx"/>
-    Bundle bundle = new Bundle();
-    bundle.putString(PreferencePage.EXTRA_ARGUMENT_PREFERENCE_PAGE_NAME, preferencePage.name());
-    intent.putExtra(PreferenceActivity.EXTRA_SHOW_FRAGMENT_ARGUMENTS, bundle);
-    return intent;
-  }
 
-  @Override
-  public void onBuildHeaders(List<Header> target) {
-    loadHeaders(target, onIsMultiPane());
-  }
+    static Intent maybeCreateRedirectingIntent(
+            Intent currentIntent, boolean isMultipane, PreferencePage preferencePage) {
+        // See #onCreate to understand what's going.
+        if (currentIntent.getStringExtra(PreferenceActivity.EXTRA_SHOW_FRAGMENT) != null
+                || isMultipane) {
+            return null;
+        }
+        Intent intent = new Intent(currentIntent);
+        intent.putExtra(PreferenceActivity.EXTRA_SHOW_FRAGMENT,
+                PreferenceBaseFragment.class.getCanonicalName());
+        // Send arguments of a fragment as a bundle.
+        // This is equivalent to below xml.
+        // <preference-headers>...<header ...><extra name="xxxx" value="xxxx"/>
+        Bundle bundle = new Bundle();
+        bundle.putString(PreferencePage.EXTRA_ARGUMENT_PREFERENCE_PAGE_NAME, preferencePage.name());
+        intent.putExtra(PreferenceActivity.EXTRA_SHOW_FRAGMENT_ARGUMENTS, bundle);
+        return intent;
+    }
 
-  void loadHeaders(List<Header> target, boolean isMultiPane) {
-    if (!isMultiPane) {
-      // It is not needed to load the header for single pane preference,
-      // because the view will be switched to the contents directly by above hack.
-      return;
+    @Override
+    public void onBuildHeaders(List<Header> target) {
+        loadHeaders(target, onIsMultiPane());
     }
-    loadHeadersFromResource(
-        getResources().getBoolean(R.bool.sending_information_features_enabled)
-            ? R.xml.preference_headers_multipane
-            : R.xml.preference_headers_multipane_without_stats,
-        target);
-    if (MozcUtil.isDebug(this)) {
-      // For debug build, we load additional header.
-      loadHeadersFromResource(R.xml.preference_headers_multipane_development, target);
+
+    void loadHeaders(List<Header> target, boolean isMultiPane) {
+        if (!isMultiPane) {
+            // It is not needed to load the header for single pane preference,
+            // because the view will be switched to the contents directly by above hack.
+            return;
+        }
+        loadHeadersFromResource(
+                getResources().getBoolean(R.bool.sending_information_features_enabled)
+                        ? R.xml.preference_headers_multipane
+                        : R.xml.preference_headers_multipane_without_stats,
+                target);
+        if (MozcUtil.isDebug(this)) {
+            // For debug build, we load additional header.
+            loadHeadersFromResource(R.xml.preference_headers_multipane_development, target);
+        }
     }
-  }
 }

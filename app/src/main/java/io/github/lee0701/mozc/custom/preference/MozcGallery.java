@@ -42,25 +42,25 @@ import android.widget.Gallery;
 @SuppressWarnings({"deprecation", "javadoc"})
 public class MozcGallery extends Gallery {
 
-  public MozcGallery(Context context) {
-    super(context);
-  }
-
-  public MozcGallery(Context context, AttributeSet attrs) {
-    super(context, attrs);
-  }
-
-  public MozcGallery(Context context, AttributeSet attrs, int defStyle) {
-    super(context, attrs, defStyle);
-  }
-
-  @Override
-  public boolean onTouchEvent(MotionEvent e) {
-    if (!isEnabled()) {
-      // Consumes the key event in order not to propagate the event
-      // to views under this view.
-      return true;
+    public MozcGallery(Context context) {
+        super(context);
     }
-    return super.onTouchEvent(e);
-  }
+
+    public MozcGallery(Context context, AttributeSet attrs) {
+        super(context, attrs);
+    }
+
+    public MozcGallery(Context context, AttributeSet attrs, int defStyle) {
+        super(context, attrs, defStyle);
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent e) {
+        if (!isEnabled()) {
+            // Consumes the key event in order not to propagate the event
+            // to views under this view.
+            return true;
+        }
+        return super.onTouchEvent(e);
+    }
 }

@@ -29,10 +29,10 @@
 
 package io.github.lee0701.mozc.custom.preference;
 
-import io.github.lee0701.mozc.custom.DependencyFactory;
-
 import android.app.Activity;
 import android.content.Intent;
+
+import io.github.lee0701.mozc.custom.DependencyFactory;
 
 /**
  * Proxy activity forwarding to preference screen based on
@@ -40,11 +40,11 @@ import android.content.Intent;
  */
 public class MozcProxyPreferenceActivity extends MozcProxyActivity {
 
-  @Override
-  protected Intent getForwardIntent() {
-    Class<? extends Activity> destinationActivity =
-        DependencyFactory.getDependency(getApplicationContext()).getPreferenceActivityClass();
-    return new Intent(this, destinationActivity);
-  }
+    @Override
+    protected Intent getForwardIntent() {
+        Class<? extends Activity> destinationActivity =
+                DependencyFactory.getDependency(getApplicationContext()).getPreferenceActivityClass();
+        return new Intent(this, destinationActivity);
+    }
 
 }

@@ -45,81 +45,83 @@ import java.util.List;
  */
 public class CandidateBackgroundFocusedDrawable extends BaseBackgroundDrawable {
 
-  private static final int SHADOW_PIXELS = 3;
+    private static final int SHADOW_PIXELS = 3;
 
-  private final int topColor;
-  private final int bottomColor;
-  private final int shadowColor;
+    private final int topColor;
+    private final int bottomColor;
+    private final int shadowColor;
 
-  private int left;
-  private int top;
-  private int right;
-  private int bottom;
+    private int left;
+    private int top;
+    private int right;
+    private int bottom;
 
-  /** Cached Paint instance to reuse for performance reason. */
-  private final Paint paint = new Paint();
-  private final List<Shader> shaderList = new ArrayList<Shader>(3);
+    /**
+     * Cached Paint instance to reuse for performance reason.
+     */
+    private final Paint paint = new Paint();
+    private final List<Shader> shaderList = new ArrayList<Shader>(3);
 
-  public CandidateBackgroundFocusedDrawable(
-      int leftPadding, int topPadding, int rightPadding, int bottomPadding,
-      int topColor, int bottomColor, int shadowColor) {
-    super(leftPadding, topPadding, rightPadding, bottomPadding);
-    this.topColor = topColor;
-    this.bottomColor = bottomColor;
-    this.shadowColor = shadowColor;
-  }
-
-  @Override
-  public void draw(Canvas canvas) {
-    if (isCanvasRectEmpty()) {
-      return;
+    public CandidateBackgroundFocusedDrawable(
+            int leftPadding, int topPadding, int rightPadding, int bottomPadding,
+            int topColor, int bottomColor, int shadowColor) {
+        super(leftPadding, topPadding, rightPadding, bottomPadding);
+        this.topColor = topColor;
+        this.bottomColor = bottomColor;
+        this.shadowColor = shadowColor;
     }
 
-    // Local variable cache for better performance.
-    Paint paint = this.paint;
-    int left = this.left;
-    int top = this.top;
-    int right = this.right;
-    int bottom = this.bottom;
+    @Override
+    public void draw(Canvas canvas) {
+        if (isCanvasRectEmpty()) {
+            return;
+        }
 
-    for (Shader shader : shaderList) {
-      paint.reset();
-      paint.setAntiAlias(true);
-      paint.setShader(shader);
-      canvas.drawRect(left, top, right, bottom, paint);
-    }
-  }
+        // Local variable cache for better performance.
+        Paint paint = this.paint;
+        int left = this.left;
+        int top = this.top;
+        int right = this.right;
+        int bottom = this.bottom;
 
-  @Override
-  protected void onBoundsChange(Rect rect) {
-    super.onBoundsChange(rect);
-
-    shaderList.clear();
-
-    if (isCanvasRectEmpty()) {
-      return;
+        for (Shader shader : shaderList) {
+            paint.reset();
+            paint.setAntiAlias(true);
+            paint.setShader(shader);
+            canvas.drawRect(left, top, right, bottom, paint);
+        }
     }
 
-    Rect canvasRect = getCanvasRect();
-    left = canvasRect.left;
-    top = canvasRect.top;
-    right = canvasRect.right;
-    bottom = canvasRect.bottom;
-    // Shader filling with simple gradient color.
-    shaderList.add(new LinearGradient(0, top, 0, bottom, topColor, bottomColor, TileMode.CLAMP));
+    @Override
+    protected void onBoundsChange(Rect rect) {
+        super.onBoundsChange(rect);
 
-    // Shader rendering top/bottom edge gradient shadows.
-    float verticalShadowStep0 = (SHADOW_PIXELS + 1) / (float) (bottom - top);
-    float verticalShadowStep1 = 1.0f - verticalShadowStep0;
-    shaderList.add(new LinearGradient(0, top, 0, bottom,
-        new int[]{shadowColor, 0, 0, shadowColor},
-        new float[]{0.0f, verticalShadowStep0, verticalShadowStep1, 1.0f}, TileMode.CLAMP));
+        shaderList.clear();
 
-    // Shader rendering left/right edge gradient shadows.
-    float horizontalShadowStep0 = (SHADOW_PIXELS + 1) / (float) (right - left);
-    float horizontalShadowStep1 = 1.0f - horizontalShadowStep0;
-    shaderList.add(new LinearGradient(left, 0, right, 0,
-        new int[]{shadowColor, 0, 0, shadowColor},
-        new float[]{0.0f, horizontalShadowStep0, horizontalShadowStep1, 1.0f}, TileMode.CLAMP));
-  }
+        if (isCanvasRectEmpty()) {
+            return;
+        }
+
+        Rect canvasRect = getCanvasRect();
+        left = canvasRect.left;
+        top = canvasRect.top;
+        right = canvasRect.right;
+        bottom = canvasRect.bottom;
+        // Shader filling with simple gradient color.
+        shaderList.add(new LinearGradient(0, top, 0, bottom, topColor, bottomColor, TileMode.CLAMP));
+
+        // Shader rendering top/bottom edge gradient shadows.
+        float verticalShadowStep0 = (SHADOW_PIXELS + 1) / (float) (bottom - top);
+        float verticalShadowStep1 = 1.0f - verticalShadowStep0;
+        shaderList.add(new LinearGradient(0, top, 0, bottom,
+                new int[]{shadowColor, 0, 0, shadowColor},
+                new float[]{0.0f, verticalShadowStep0, verticalShadowStep1, 1.0f}, TileMode.CLAMP));
+
+        // Shader rendering left/right edge gradient shadows.
+        float horizontalShadowStep0 = (SHADOW_PIXELS + 1) / (float) (right - left);
+        float horizontalShadowStep1 = 1.0f - horizontalShadowStep0;
+        shaderList.add(new LinearGradient(left, 0, right, 0,
+                new int[]{shadowColor, 0, 0, shadowColor},
+                new float[]{0.0f, horizontalShadowStep0, horizontalShadowStep1, 1.0f}, TileMode.CLAMP));
+    }
 }

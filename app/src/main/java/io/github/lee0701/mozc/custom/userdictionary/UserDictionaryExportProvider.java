@@ -29,8 +29,6 @@
 
 package io.github.lee0701.mozc.custom.userdictionary;
 
-import io.github.lee0701.mozc.custom.MozcLog;
-
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.database.Cursor;
@@ -42,52 +40,54 @@ import java.io.FileNotFoundException;
 
 import javax.annotation.Nullable;
 
+import io.github.lee0701.mozc.custom.MozcLog;
+
 /**
  * Content provider class to export a user dictionary.
  */
 public class UserDictionaryExportProvider extends ContentProvider {
 
-  @Override
-  public boolean onCreate() {
-    return true;
-  }
-
-  @Override
-  public ParcelFileDescriptor openFile(Uri uri, String mode) throws FileNotFoundException {
-    File inputFile = new File(uri.getPath());
-    if (!inputFile.canRead()) {
-      MozcLog.e(inputFile.getAbsolutePath() + "doesn't exist.");
-      // Failed to export the user dictionary. This exception doesn't cause a crash.
-      throw new FileNotFoundException();
+    @Override
+    public boolean onCreate() {
+        return true;
     }
-    return ParcelFileDescriptor.open(inputFile, ParcelFileDescriptor.MODE_READ_ONLY);
-  }
 
-  @Override
-  public String getType(Uri uri) {
-    return "application/zip";
-  }
+    @Override
+    public ParcelFileDescriptor openFile(Uri uri, String mode) throws FileNotFoundException {
+        File inputFile = new File(uri.getPath());
+        if (!inputFile.canRead()) {
+            MozcLog.e(inputFile.getAbsolutePath() + "doesn't exist.");
+            // Failed to export the user dictionary. This exception doesn't cause a crash.
+            throw new FileNotFoundException();
+        }
+        return ParcelFileDescriptor.open(inputFile, ParcelFileDescriptor.MODE_READ_ONLY);
+    }
 
-  @Override
-  @Nullable
-  public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
-                      String sortOrder) {
-    return null;
-  }
+    @Override
+    public String getType(Uri uri) {
+        return "application/zip";
+    }
 
-  @Override
-  public int delete(Uri uri, String selection, String[] selectionArgs) {
-    return 0;
-  }
+    @Override
+    @Nullable
+    public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
+                        String sortOrder) {
+        return null;
+    }
 
-  @Override
-  @Nullable
-  public Uri insert(Uri uri, ContentValues values) {
-    return null;
-  }
+    @Override
+    public int delete(Uri uri, String selection, String[] selectionArgs) {
+        return 0;
+    }
 
-  @Override
-  public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-    return 0;
-  }
+    @Override
+    @Nullable
+    public Uri insert(Uri uri, ContentValues values) {
+        return null;
+    }
+
+    @Override
+    public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+        return 0;
+    }
 }

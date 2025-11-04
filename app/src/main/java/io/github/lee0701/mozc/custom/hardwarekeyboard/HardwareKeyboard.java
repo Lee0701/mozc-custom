@@ -29,14 +29,16 @@
 
 package io.github.lee0701.mozc.custom.hardwarekeyboard;
 
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
+
+import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands;
+import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.CompositionMode;
+
 import io.github.lee0701.mozc.custom.KeycodeConverter.KeyEventInterface;
 import io.github.lee0701.mozc.custom.MozcLog;
 import io.github.lee0701.mozc.custom.keyboard.Keyboard.KeyboardSpecification;
 import io.github.lee0701.mozc.custom.preference.ClientSidePreference.HardwareKeyMap;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.CompositionMode;
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
 
 /**
  * Converter from android key events to mozc key events.
@@ -45,88 +47,88 @@ import com.google.common.base.Preconditions;
  */
 public class HardwareKeyboard {
 
-  /**
-   * Used to switch the composition mode of harwdware keyboard.
-   **/
-  public static enum CompositionSwitchMode {
-    TOGGLE,
-    KANA,
-    ALPHABET
-  }
-
-  private HardwareKeyboardSpecification hardwareKeyboardSpecification =
-      HardwareKeyboardSpecification.JAPANESE109A;
-
-  private CompositionMode compositionMode = CompositionMode.HIRAGANA;
-
-  public ProtoCommands.KeyEvent getMozcKeyEvent(android.view.KeyEvent keyEvent) {
-    return hardwareKeyboardSpecification.getMozcKeyEvent(Preconditions.checkNotNull(keyEvent));
-  }
-
-  public KeyEventInterface getKeyEventInterface(android.view.KeyEvent keyEvent) {
-    return hardwareKeyboardSpecification.getKeyEventInterface(
-        Preconditions.checkNotNull(keyEvent));
-  }
-
-  public boolean setCompositionModeByKey(android.view.KeyEvent keyEvent) {
-    Optional<CompositionSwitchMode> compositionSwitchMode =
-        hardwareKeyboardSpecification.getCompositionSwitchMode(
-            Preconditions.checkNotNull(keyEvent));
-
-    if (!compositionSwitchMode.isPresent()) {
-      return false;
+    /**
+     * Used to switch the composition mode of harwdware keyboard.
+     **/
+    public enum CompositionSwitchMode {
+        TOGGLE,
+        KANA,
+        ALPHABET
     }
 
-    setCompositionMode(compositionSwitchMode.get());
+    private HardwareKeyboardSpecification hardwareKeyboardSpecification =
+            HardwareKeyboardSpecification.JAPANESE109A;
 
-    // Changed composition mode.
-    return true;
-  }
+    private CompositionMode compositionMode = CompositionMode.HIRAGANA;
 
-  public void setCompositionMode(CompositionSwitchMode compositionSwitchMode) {
-    switch (Preconditions.checkNotNull(compositionSwitchMode)) {
-      case TOGGLE:
-        if (compositionMode == CompositionMode.HIRAGANA) {
-          compositionMode = CompositionMode.HALF_ASCII;
-        } else {
-          compositionMode = CompositionMode.HIRAGANA;
+    public ProtoCommands.KeyEvent getMozcKeyEvent(android.view.KeyEvent keyEvent) {
+        return hardwareKeyboardSpecification.getMozcKeyEvent(Preconditions.checkNotNull(keyEvent));
+    }
+
+    public KeyEventInterface getKeyEventInterface(android.view.KeyEvent keyEvent) {
+        return hardwareKeyboardSpecification.getKeyEventInterface(
+                Preconditions.checkNotNull(keyEvent));
+    }
+
+    public boolean setCompositionModeByKey(android.view.KeyEvent keyEvent) {
+        Optional<CompositionSwitchMode> compositionSwitchMode =
+                hardwareKeyboardSpecification.getCompositionSwitchMode(
+                        Preconditions.checkNotNull(keyEvent));
+
+        if (!compositionSwitchMode.isPresent()) {
+            return false;
         }
-        break;
-      case KANA:
-        compositionMode = CompositionMode.HIRAGANA;
-        break;
-      case ALPHABET:
-        compositionMode = CompositionMode.HALF_ASCII;
-        break;
+
+        setCompositionMode(compositionSwitchMode.get());
+
+        // Changed composition mode.
+        return true;
     }
-  }
 
-  public KeyboardSpecification getKeyboardSpecification() {
-    switch(compositionMode) {
-      case HIRAGANA:
-        return hardwareKeyboardSpecification.getKanaKeyboardSpecification();
-      default:
-        return hardwareKeyboardSpecification.getAlphabetKeyboardSpecification();
+    public void setCompositionMode(CompositionSwitchMode compositionSwitchMode) {
+        switch (Preconditions.checkNotNull(compositionSwitchMode)) {
+            case TOGGLE:
+                if (compositionMode == CompositionMode.HIRAGANA) {
+                    compositionMode = CompositionMode.HALF_ASCII;
+                } else {
+                    compositionMode = CompositionMode.HIRAGANA;
+                }
+                break;
+            case KANA:
+                compositionMode = CompositionMode.HIRAGANA;
+                break;
+            case ALPHABET:
+                compositionMode = CompositionMode.HALF_ASCII;
+                break;
+        }
     }
-  }
 
-  public CompositionMode getCompositionMode() {
-    return compositionMode;
-  }
-
-  public void setHardwareKeyMap(HardwareKeyMap hardwareKeyMap) {
-    Optional<HardwareKeyboardSpecification> nextSpecification =
-        HardwareKeyboardSpecification.getHardwareKeyboardSpecification(
-            Optional.fromNullable(hardwareKeyMap));
-    if (!nextSpecification.isPresent()) {
-      MozcLog.w("Invalid HardwareKeyMap: " + hardwareKeyMap);
-      return;
+    public KeyboardSpecification getKeyboardSpecification() {
+        switch (compositionMode) {
+            case HIRAGANA:
+                return hardwareKeyboardSpecification.getKanaKeyboardSpecification();
+            default:
+                return hardwareKeyboardSpecification.getAlphabetKeyboardSpecification();
+        }
     }
-    hardwareKeyboardSpecification = nextSpecification.get();
-    setCompositionMode(CompositionSwitchMode.KANA);
-  }
 
-  public HardwareKeyMap getHardwareKeyMap() {
-    return hardwareKeyboardSpecification.getHardwareKeyMap();
-  }
+    public CompositionMode getCompositionMode() {
+        return compositionMode;
+    }
+
+    public void setHardwareKeyMap(HardwareKeyMap hardwareKeyMap) {
+        Optional<HardwareKeyboardSpecification> nextSpecification =
+                HardwareKeyboardSpecification.getHardwareKeyboardSpecification(
+                        Optional.fromNullable(hardwareKeyMap));
+        if (!nextSpecification.isPresent()) {
+            MozcLog.w("Invalid HardwareKeyMap: " + hardwareKeyMap);
+            return;
+        }
+        hardwareKeyboardSpecification = nextSpecification.get();
+        setCompositionMode(CompositionSwitchMode.KANA);
+    }
+
+    public HardwareKeyMap getHardwareKeyMap() {
+        return hardwareKeyboardSpecification.getHardwareKeyMap();
+    }
 }

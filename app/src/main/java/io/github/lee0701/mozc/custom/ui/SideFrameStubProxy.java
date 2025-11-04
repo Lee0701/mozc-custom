@@ -29,11 +29,6 @@
 
 package io.github.lee0701.mozc.custom.ui;
 
-import io.github.lee0701.mozc.custom.view.Skin;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
-
 import android.content.res.Resources;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -41,6 +36,12 @@ import android.view.ViewStub;
 import android.view.ViewStub.OnInflateListener;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
+
+import io.github.lee0701.mozc.custom.view.Skin;
 
 /**
  * Proxy between ViewStub and left/right frame.
@@ -50,79 +51,79 @@ import android.widget.ImageView;
  */
 public class SideFrameStubProxy {
 
-  @VisibleForTesting public boolean inflated = false;
+    @VisibleForTesting
+    public boolean inflated = false;
 
-  private Optional<View> currentView = Optional.absent();
+    private Optional<View> currentView = Optional.absent();
 
-  private Optional<ImageView> adjustButton = Optional.absent();
-  private int inputFrameHeight = 0;
-  private Optional<OnClickListener> buttonOnClickListener = Optional.absent();
+    private Optional<ImageView> adjustButton = Optional.absent();
+    private int inputFrameHeight = 0;
+    private Optional<OnClickListener> buttonOnClickListener = Optional.absent();
 
-  private int adjustButtonResourceId;
-  private Skin skin = Skin.getFallbackInstance();
+    private int adjustButtonResourceId;
+    private Skin skin = Skin.getFallbackInstance();
 
-  private Resources resources;
+    private Resources resources;
 
-  private void updateAdjustButtonImage() {
-    Preconditions.checkState(adjustButton.isPresent());
-    adjustButton.get().setImageDrawable(skin.getDrawable(resources, adjustButtonResourceId));
-  }
-
-  public void initialize(View view, int stubId, final int adjustButtonId,
-                         int adjustButtonResourceId) {
-    this.resources = Preconditions.checkNotNull(view).getResources();
-    ViewStub viewStub = ViewStub.class.cast(view.findViewById(stubId));
-    currentView = Optional.<View>of(viewStub);
-    this.adjustButtonResourceId = adjustButtonResourceId;
-
-    viewStub.setOnInflateListener(new OnInflateListener() {
-
-      @SuppressWarnings("deprecation")
-      @Override
-      public void onInflate(ViewStub stub, View view) {
-        inflated = true;
-
-        currentView = Optional.of(view);
-        currentView.get().setVisibility(View.VISIBLE);
-        adjustButton = Optional.of(ImageView.class.cast(view.findViewById(adjustButtonId)));
-        adjustButton.get().setOnClickListener(buttonOnClickListener.orNull());
-        updateAdjustButtonImage();
-        resetAdjustButtonBottomMarginInternal(inputFrameHeight);
-      }
-    });
-  }
-
-  public void setSkin(Skin skin) {
-    this.skin = Preconditions.checkNotNull(skin);
-    if (adjustButton.isPresent()) {
-      updateAdjustButtonImage();
+    private void updateAdjustButtonImage() {
+        Preconditions.checkState(adjustButton.isPresent());
+        adjustButton.get().setImageDrawable(skin.getDrawable(resources, adjustButtonResourceId));
     }
-  }
 
-  public void setButtonOnClickListener(OnClickListener onClickListener) {
-    buttonOnClickListener = Optional.of(Preconditions.checkNotNull(onClickListener));
-  }
+    public void initialize(View view, int stubId, final int adjustButtonId,
+                           int adjustButtonResourceId) {
+        this.resources = Preconditions.checkNotNull(view).getResources();
+        ViewStub viewStub = (ViewStub) view.findViewById(stubId);
+        currentView = Optional.of(viewStub);
+        this.adjustButtonResourceId = adjustButtonResourceId;
 
-  public void setFrameVisibility(int visibility) {
-    if (currentView.isPresent()) {
-      currentView.get().setVisibility(visibility);
+        viewStub.setOnInflateListener(new OnInflateListener() {
+
+            @SuppressWarnings("deprecation")
+            @Override
+            public void onInflate(ViewStub stub, View view) {
+                inflated = true;
+
+                currentView = Optional.of(view);
+                currentView.get().setVisibility(View.VISIBLE);
+                adjustButton = Optional.of((ImageView) view.findViewById(adjustButtonId));
+                adjustButton.get().setOnClickListener(buttonOnClickListener.orNull());
+                updateAdjustButtonImage();
+                resetAdjustButtonBottomMarginInternal(inputFrameHeight);
+            }
+        });
     }
-  }
 
-  private void resetAdjustButtonBottomMarginInternal(int inputFrameHeight) {
-    if (adjustButton.isPresent()) {
-      ImageView imageView = adjustButton.get();
-      FrameLayout.LayoutParams layoutParams = FrameLayout.LayoutParams.class.cast(
-          imageView.getLayoutParams());
-      layoutParams.bottomMargin = (inputFrameHeight - layoutParams.height) / 2;
-      imageView.setLayoutParams(layoutParams);
+    public void setSkin(Skin skin) {
+        this.skin = Preconditions.checkNotNull(skin);
+        if (adjustButton.isPresent()) {
+            updateAdjustButtonImage();
+        }
     }
-  }
 
-  public void resetAdjustButtonBottomMargin(int inputFrameHeight) {
-    if (inflated) {
-      resetAdjustButtonBottomMarginInternal(inputFrameHeight);
+    public void setButtonOnClickListener(OnClickListener onClickListener) {
+        buttonOnClickListener = Optional.of(Preconditions.checkNotNull(onClickListener));
     }
-    this.inputFrameHeight = inputFrameHeight;
-  }
+
+    public void setFrameVisibility(int visibility) {
+        if (currentView.isPresent()) {
+            currentView.get().setVisibility(visibility);
+        }
+    }
+
+    private void resetAdjustButtonBottomMarginInternal(int inputFrameHeight) {
+        if (adjustButton.isPresent()) {
+            ImageView imageView = adjustButton.get();
+            FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) imageView.getLayoutParams();
+            layoutParams.bottomMargin = (inputFrameHeight - layoutParams.height) / 2;
+            imageView.setLayoutParams(layoutParams);
+        }
+    }
+
+    public void resetAdjustButtonBottomMargin(int inputFrameHeight) {
+        if (inflated) {
+            resetAdjustButtonBottomMarginInternal(inputFrameHeight);
+        }
+        this.inputFrameHeight = inputFrameHeight;
+    }
 }

@@ -29,16 +29,6 @@
 
 package io.github.lee0701.mozc.custom.ui;
 
-import io.github.lee0701.mozc.custom.MozcUtil;
-import io.github.lee0701.mozc.custom.ViewEventListener;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidateWindow.CandidateWindow;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidateWindow.CandidateWindow.Candidate;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidateWindow.Category;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Command;
-import io.github.lee0701.mozc.custom.R;
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
-
 import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -49,452 +39,484 @@ import android.graphics.RectF;
 import android.os.Build;
 import android.view.MotionEvent;
 
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
+
+import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidateWindow.CandidateWindow;
+import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidateWindow.CandidateWindow.Candidate;
+import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidateWindow.Category;
+import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Command;
+
 import java.util.Locale;
+
+import io.github.lee0701.mozc.custom.MozcUtil;
+import io.github.lee0701.mozc.custom.R;
+import io.github.lee0701.mozc.custom.ViewEventListener;
 
 /**
  * Layouts floating candidate window and draw it's contents on canvas.
- *
+ * <p>
  * The point of origin of layout is NOT a left-top corner of candidate list BUT the left-top corner
  * of the candidate column and the right-top corner of the shortcut column.
- *
+ * <p>
  * TODO(hsumita): Rewrite using LinearLayout or something.
  */
 public class FloatingCandidateLayoutRenderer {
 
-  private static class WindowRects {
+    private static class WindowRects {
 
-    public final Rect window;
-    public final Optional<Rect> focus;
-    public final Optional<Rect> pageIndicator;
-    public final Optional<RectF> scrollIndicator;
+        public final Rect window;
+        public final Optional<Rect> focus;
+        public final Optional<Rect> pageIndicator;
+        public final Optional<RectF> scrollIndicator;
 
-    WindowRects(Rect window, Optional<Rect> focus, Optional<Rect> pageIndicator,
-                Optional<RectF> scrollIndicator) {
-      this.window = Preconditions.checkNotNull(window);
-      this.focus = Preconditions.checkNotNull(focus);
-      this.pageIndicator = Preconditions.checkNotNull(pageIndicator);
-      this.scrollIndicator = Preconditions.checkNotNull(scrollIndicator);
-    }
-  }
-
-  /** Locale field for {@link Paint#setTextLocale(Locale)}. */
-  private static final Optional<Locale> TEXT_LOCALE = (Build.VERSION.SDK_INT >= 17)
-      ? Optional.of(Locale.JAPAN) : Optional.<Locale>absent();
-
-  private static final String FOOTER_TEXT_FORMAT = "%d / %d";
-
-  private final Paint candidatePaint;
-  private final Paint focusedCandidatePaint;
-  private final Paint descriptionPaint;
-  private final Paint shortcutPaint;
-  private final Paint footerPaint;
-  private final Paint separatorPaint;
-  private final Paint windowBackgroundPaint;
-  private final Paint focuseBackgroundPaint;
-  private final Paint scrollIndicatorPaint;
-
-  private final int windowMinimumWidth;
-  private final int windowHorizontalPadding;
-  private final float windowRoundRectRadius;
-  private final int candidateHeight;
-  private final int candidateOffsetY;
-  private final int candidateDescriptionMinimumPadding;
-  private final int footerHeight;
-  private final float footerTextCenterToBaseLineOffset;
-  private final int horizontalSeparatorPadding;
-  private final int shortcutWidth;
-  private final float shortcutCenterX;
-  private final int scrollIndicatorWidth;
-  private final int scrollIndicatorRadius;
-
-  private Optional<WindowRects> windowRects = Optional.absent();
-  private Optional<ViewEventListener> viewEventListener = Optional.absent();
-  private Optional<CandidateWindow> candidates = Optional.absent();
-  private Optional<Integer> maxWidth = Optional.absent();
-  /** Focused candidate index, or tapped candidate index if exists. */
-  private Optional<Integer> focusedOrTappedCandidateIndexOnPage = Optional.absent();
-  /** TappedInfo for the current touch operation. Set on TOUCH_DOWN, reset on TOUCH_UP. */
-  private Optional<Integer> tappingCandidateIndex = Optional.absent();
-  private int totalCandidatesCount;
-  private int maxCandidateWidth;
-  private int maxDescriptionWidth;
-
-  public FloatingCandidateLayoutRenderer(Resources res) {
-    Preconditions.checkNotNull(res);
-
-    candidatePaint = new Paint();
-    candidatePaint.setColor(res.getColor(R.color.floating_candidate_text));
-    candidatePaint.setTextSize(res.getDimension(R.dimen.floating_candidate_text_size));
-    candidatePaint.setAntiAlias(true);
-    if (TEXT_LOCALE.isPresent()) {
-      candidatePaint.setTextLocale(TEXT_LOCALE.get());
+        WindowRects(Rect window, Optional<Rect> focus, Optional<Rect> pageIndicator,
+                    Optional<RectF> scrollIndicator) {
+            this.window = Preconditions.checkNotNull(window);
+            this.focus = Preconditions.checkNotNull(focus);
+            this.pageIndicator = Preconditions.checkNotNull(pageIndicator);
+            this.scrollIndicator = Preconditions.checkNotNull(scrollIndicator);
+        }
     }
 
-    focusedCandidatePaint = new Paint(candidatePaint);
-    focusedCandidatePaint.setColor(res.getColor(R.color.floating_candidate_focused_text));
+    /**
+     * Locale field for {@link Paint#setTextLocale(Locale)}.
+     */
+    private static final Optional<Locale> TEXT_LOCALE = (Build.VERSION.SDK_INT >= 17)
+            ? Optional.of(Locale.JAPAN) : Optional.absent();
 
-    descriptionPaint = new Paint(candidatePaint);
-    descriptionPaint.setTextSize(
-        res.getDimension(R.dimen.floating_candidate_description_text_size));
-    descriptionPaint.setColor(res.getColor(R.color.floating_candidate_description_text));
+    private static final String FOOTER_TEXT_FORMAT = "%d / %d";
 
-    shortcutPaint = new Paint(candidatePaint);
-    shortcutPaint.setTextSize(res.getDimension(R.dimen.floating_candidate_shortcut_text_size));
-    shortcutPaint.setColor(res.getColor(R.color.floating_candidate_shortcut_text));
+    private final Paint candidatePaint;
+    private final Paint focusedCandidatePaint;
+    private final Paint descriptionPaint;
+    private final Paint shortcutPaint;
+    private final Paint footerPaint;
+    private final Paint separatorPaint;
+    private final Paint windowBackgroundPaint;
+    private final Paint focuseBackgroundPaint;
+    private final Paint scrollIndicatorPaint;
 
-    scrollIndicatorPaint = new Paint();
-    scrollIndicatorPaint.setColor(res.getColor(R.color.floating_candidate_scroll_indicator));
+    private final int windowMinimumWidth;
+    private final int windowHorizontalPadding;
+    private final float windowRoundRectRadius;
+    private final int candidateHeight;
+    private final int candidateOffsetY;
+    private final int candidateDescriptionMinimumPadding;
+    private final int footerHeight;
+    private final float footerTextCenterToBaseLineOffset;
+    private final int horizontalSeparatorPadding;
+    private final int shortcutWidth;
+    private final float shortcutCenterX;
+    private final int scrollIndicatorWidth;
+    private final int scrollIndicatorRadius;
 
-    footerPaint = new Paint(candidatePaint);
-    footerPaint.setTextSize(res.getDimension(R.dimen.floating_candidate_footer_text_size));
-    footerPaint.setColor(res.getColor(R.color.floating_candidate_footer_text));
+    private Optional<WindowRects> windowRects = Optional.absent();
+    private Optional<ViewEventListener> viewEventListener = Optional.absent();
+    private Optional<CandidateWindow> candidates = Optional.absent();
+    private Optional<Integer> maxWidth = Optional.absent();
+    /**
+     * Focused candidate index, or tapped candidate index if exists.
+     */
+    private Optional<Integer> focusedOrTappedCandidateIndexOnPage = Optional.absent();
+    /**
+     * TappedInfo for the current touch operation. Set on TOUCH_DOWN, reset on TOUCH_UP.
+     */
+    private Optional<Integer> tappingCandidateIndex = Optional.absent();
+    private int totalCandidatesCount;
+    private int maxCandidateWidth;
+    private int maxDescriptionWidth;
 
-    separatorPaint = new Paint();
-    separatorPaint.setStrokeWidth(
-        res.getDimension(R.dimen.floating_candidate_separator_width));
-    separatorPaint.setColor(res.getColor(R.color.floating_candidate_footer_separator));
+    public FloatingCandidateLayoutRenderer(Resources res) {
+        Preconditions.checkNotNull(res);
 
-    windowBackgroundPaint = new Paint();
-    windowBackgroundPaint.setColor(res.getColor(R.color.floating_candidate_window_background));
-    windowBackgroundPaint.setShadowLayer(
-        res.getDimension(R.dimen.floating_candidate_window_shadow_radius),
-        0, res.getDimension(R.dimen.floating_candidate_window_shadow_offset_y),
-        res.getColor(R.color.floating_candidate_shadow));
+        candidatePaint = new Paint();
+        candidatePaint.setColor(res.getColor(R.color.floating_candidate_text));
+        candidatePaint.setTextSize(res.getDimension(R.dimen.floating_candidate_text_size));
+        candidatePaint.setAntiAlias(true);
+        if (TEXT_LOCALE.isPresent()) {
+            candidatePaint.setTextLocale(TEXT_LOCALE.get());
+        }
 
-    focuseBackgroundPaint = new Paint();
-    focuseBackgroundPaint.setColor(res.getColor(R.color.floating_candidate_focus_background));
+        focusedCandidatePaint = new Paint(candidatePaint);
+        focusedCandidatePaint.setColor(res.getColor(R.color.floating_candidate_focused_text));
 
-    float candidateVerticalPadding =
-        res.getDimension(R.dimen.floating_candidate_candidate_vertical_padding);
-    FontMetrics candidateMetrics = candidatePaint.getFontMetrics();
-    candidateHeight = (int) Math.ceil(
-        candidateMetrics.descent - candidateMetrics.ascent + candidateVerticalPadding * 2);
-    candidateOffsetY = (int) Math.ceil(-candidateMetrics.ascent + candidateVerticalPadding);
+        descriptionPaint = new Paint(candidatePaint);
+        descriptionPaint.setTextSize(
+                res.getDimension(R.dimen.floating_candidate_description_text_size));
+        descriptionPaint.setColor(res.getColor(R.color.floating_candidate_description_text));
 
-    windowMinimumWidth = res.getDimensionPixelSize(R.dimen.floating_candidate_window_minimum_width);
-    windowHorizontalPadding =
-        res.getDimensionPixelOffset(R.dimen.floating_candidate_window_horizontal_padding);
-    windowRoundRectRadius = res.getDimension(R.dimen.floating_candidate_window_round_rect_radius);
-    candidateDescriptionMinimumPadding =
-        res.getDimensionPixelSize(R.dimen.floating_candidate_candidate_description_minimum_padding);
-    horizontalSeparatorPadding =
-        res.getDimensionPixelSize(R.dimen.floating_candidate_separator_horizontal_padding);
+        shortcutPaint = new Paint(candidatePaint);
+        shortcutPaint.setTextSize(res.getDimension(R.dimen.floating_candidate_shortcut_text_size));
+        shortcutPaint.setColor(res.getColor(R.color.floating_candidate_shortcut_text));
 
-    scrollIndicatorWidth =
-        res.getDimensionPixelSize(R.dimen.floating_candidate_scroll_indicator_width);
-    scrollIndicatorRadius =
-        res.getDimensionPixelSize(R.dimen.floating_candidate_scroll_indicator_radius);
+        scrollIndicatorPaint = new Paint();
+        scrollIndicatorPaint.setColor(res.getColor(R.color.floating_candidate_scroll_indicator));
 
-    FontMetrics footerMetrics = footerPaint.getFontMetrics();
-    float footerTextHeight = -footerMetrics.ascent + footerMetrics.descent;
-    footerHeight = Math.round(footerTextHeight * 2f);
-    footerTextCenterToBaseLineOffset = (-footerMetrics.ascent - footerMetrics.descent) / 2f;
+        footerPaint = new Paint(candidatePaint);
+        footerPaint.setTextSize(res.getDimension(R.dimen.floating_candidate_footer_text_size));
+        footerPaint.setColor(res.getColor(R.color.floating_candidate_footer_text));
 
-    float shortcutCharacterWidth = shortcutPaint.measureText("m");
-    float shortcutCandidatePadding =
-        res.getDimensionPixelSize(R.dimen.floating_candidate_shortcut_candidate_padding);
-    shortcutWidth = Math.round(shortcutCharacterWidth + shortcutCandidatePadding);
-    shortcutCenterX = -shortcutCharacterWidth / 2f - shortcutCandidatePadding;
+        separatorPaint = new Paint();
+        separatorPaint.setStrokeWidth(
+                res.getDimension(R.dimen.floating_candidate_separator_width));
+        separatorPaint.setColor(res.getColor(R.color.floating_candidate_footer_separator));
 
-    updateLayout();
-  }
+        windowBackgroundPaint = new Paint();
+        windowBackgroundPaint.setColor(res.getColor(R.color.floating_candidate_window_background));
+        windowBackgroundPaint.setShadowLayer(
+                res.getDimension(R.dimen.floating_candidate_window_shadow_radius),
+                0, res.getDimension(R.dimen.floating_candidate_window_shadow_offset_y),
+                res.getColor(R.color.floating_candidate_shadow));
 
-  /** Handle touch event and invoke some actions. */
-  public void onTouchEvent(MotionEvent event) {
-    if (!candidates.isPresent() || !viewEventListener.isPresent()) {
-      return;
-    }
-    ViewEventListener listener = viewEventListener.get();
+        focuseBackgroundPaint = new Paint();
+        focuseBackgroundPaint.setColor(res.getColor(R.color.floating_candidate_focus_background));
 
-    Optional<Integer> optionalCandidateIndex = getTappingCandidate(event);
+        float candidateVerticalPadding =
+                res.getDimension(R.dimen.floating_candidate_candidate_vertical_padding);
+        FontMetrics candidateMetrics = candidatePaint.getFontMetrics();
+        candidateHeight = (int) Math.ceil(
+                candidateMetrics.descent - candidateMetrics.ascent + candidateVerticalPadding * 2);
+        candidateOffsetY = (int) Math.ceil(-candidateMetrics.ascent + candidateVerticalPadding);
 
-    if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
-      tappingCandidateIndex = optionalCandidateIndex;
-      updateLayout();
-      return;
-    }
-    if (event.getActionMasked() != MotionEvent.ACTION_UP) {
-      return;
-    }
+        windowMinimumWidth = res.getDimensionPixelSize(R.dimen.floating_candidate_window_minimum_width);
+        windowHorizontalPadding =
+                res.getDimensionPixelOffset(R.dimen.floating_candidate_window_horizontal_padding);
+        windowRoundRectRadius = res.getDimension(R.dimen.floating_candidate_window_round_rect_radius);
+        candidateDescriptionMinimumPadding =
+                res.getDimensionPixelSize(R.dimen.floating_candidate_candidate_description_minimum_padding);
+        horizontalSeparatorPadding =
+                res.getDimensionPixelSize(R.dimen.floating_candidate_separator_horizontal_padding);
 
-    if (!optionalCandidateIndex.isPresent() || !tappingCandidateIndex.isPresent()
-        || !optionalCandidateIndex.equals(tappingCandidateIndex)) {
-      tappingCandidateIndex = Optional.absent();
-      updateLayout();
-      return;
-    }
-    int candidateIndex = optionalCandidateIndex.get();
-    tappingCandidateIndex = Optional.absent();
+        scrollIndicatorWidth =
+                res.getDimensionPixelSize(R.dimen.floating_candidate_scroll_indicator_width);
+        scrollIndicatorRadius =
+                res.getDimensionPixelSize(R.dimen.floating_candidate_scroll_indicator_radius);
 
-    listener.onConversionCandidateSelected(
-        candidates.get().getCandidate(candidateIndex).getId(),
-        Optional.<Integer>absent());
-  }
+        FontMetrics footerMetrics = footerPaint.getFontMetrics();
+        float footerTextHeight = -footerMetrics.ascent + footerMetrics.descent;
+        footerHeight = Math.round(footerTextHeight * 2f);
+        footerTextCenterToBaseLineOffset = (-footerMetrics.ascent - footerMetrics.descent) / 2f;
 
-  /** Sets the max width of this window. */
-  public void setMaxWidth(int maxWidth) {
-    if (maxWidth > 0) {
-      this.maxWidth = Optional.of(maxWidth);
-    } else {
-      this.maxWidth = Optional.absent();
-    }
-    updateLayout();
-  }
+        float shortcutCharacterWidth = shortcutPaint.measureText("m");
+        float shortcutCandidatePadding =
+                res.getDimensionPixelSize(R.dimen.floating_candidate_shortcut_candidate_padding);
+        shortcutWidth = Math.round(shortcutCharacterWidth + shortcutCandidatePadding);
+        shortcutCenterX = -shortcutCharacterWidth / 2f - shortcutCandidatePadding;
 
-  /** Sets candidates. */
-  public void setCandidates(Command outCommand) {
-    Preconditions.checkNotNull(outCommand);
-    if (outCommand.getOutput().getCandidateWindow().getCandidateCount() == 0) {
-      candidates = Optional.<CandidateWindow>absent();
-      totalCandidatesCount = 0;
-    } else {
-      candidates = Optional.of(outCommand.getOutput().getCandidateWindow());
-      totalCandidatesCount = outCommand.getOutput().getAllCandidateWords().getCandidatesCount();
-    }
-    updateLayout();
-  }
-
-  /** Sets a view event listener to handle touch events. */
-  public void setViewEventListener(ViewEventListener listener) {
-    viewEventListener = Optional.of(listener);
-  }
-
-  /**
-   * Gets the rectangle of this window.
-   * Defensive-copied value is returned so caller-side can modify it.
-   */
-  public Optional<Rect> getWindowRect() {
-    if (windowRects.isPresent()) {
-      return Optional.of(new Rect(windowRects.get().window));
-    } else {
-      return Optional.absent();
-    }
-  }
-
-  /** Draws this candidate window. */
-  public void draw(Canvas canvas) {
-    Preconditions.checkNotNull(canvas);
-    Preconditions.checkState(candidates.isPresent());
-    Preconditions.checkState(windowRects.isPresent());
-
-    CandidateWindow candidatesData = candidates.get();
-    WindowRects rects = windowRects.get();
-
-    canvas.drawRoundRect(
-        new RectF(rects.window), windowRoundRectRadius, windowRoundRectRadius,
-        windowBackgroundPaint);
-
-    if (rects.focus.isPresent()) {
-      canvas.drawRect(rects.focus.get(), focuseBackgroundPaint);
+        updateLayout();
     }
 
-    // Candidates, descriptions and shortcuts.
-    int focusedIndex = focusedOrTappedCandidateIndexOnPage.or(-1);
-    for (int i = 0; i < candidatesData.getCandidateCount(); ++i) {
-      Candidate candidate = candidatesData.getCandidate(i);
-      int offsetY = getCandidateRowOffsetY(i) + candidateOffsetY;
-      Paint paint = (i == focusedIndex) ? focusedCandidatePaint : candidatePaint;
-      drawTextWithLimit(canvas, candidate.getValue(), paint, 0, offsetY, maxCandidateWidth);
-      if (candidate.getAnnotation().hasDescription()) {
-        drawTextWithAlignAndLimit(
-            canvas, candidate.getAnnotation().getDescription(), descriptionPaint,
-            rects.window.right - windowHorizontalPadding, offsetY,
-            Align.RIGHT, maxDescriptionWidth);
-      }
-      if (candidate.getAnnotation().hasShortcut()) {
+    /**
+     * Handle touch event and invoke some actions.
+     */
+    public void onTouchEvent(MotionEvent event) {
+        if (!candidates.isPresent() || !viewEventListener.isPresent()) {
+            return;
+        }
+        ViewEventListener listener = viewEventListener.get();
+
+        Optional<Integer> optionalCandidateIndex = getTappingCandidate(event);
+
+        if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+            tappingCandidateIndex = optionalCandidateIndex;
+            updateLayout();
+            return;
+        }
+        if (event.getActionMasked() != MotionEvent.ACTION_UP) {
+            return;
+        }
+
+        if (!optionalCandidateIndex.isPresent() || !tappingCandidateIndex.isPresent()
+                || !optionalCandidateIndex.equals(tappingCandidateIndex)) {
+            tappingCandidateIndex = Optional.absent();
+            updateLayout();
+            return;
+        }
+        int candidateIndex = optionalCandidateIndex.get();
+        tappingCandidateIndex = Optional.absent();
+
+        listener.onConversionCandidateSelected(
+                candidates.get().getCandidate(candidateIndex).getId(),
+                Optional.absent());
+    }
+
+    /**
+     * Sets the max width of this window.
+     */
+    public void setMaxWidth(int maxWidth) {
+        if (maxWidth > 0) {
+            this.maxWidth = Optional.of(maxWidth);
+        } else {
+            this.maxWidth = Optional.absent();
+        }
+        updateLayout();
+    }
+
+    /**
+     * Sets candidates.
+     */
+    public void setCandidates(Command outCommand) {
+        Preconditions.checkNotNull(outCommand);
+        if (outCommand.getOutput().getCandidateWindow().getCandidateCount() == 0) {
+            candidates = Optional.absent();
+            totalCandidatesCount = 0;
+        } else {
+            candidates = Optional.of(outCommand.getOutput().getCandidateWindow());
+            totalCandidatesCount = outCommand.getOutput().getAllCandidateWords().getCandidatesCount();
+        }
+        updateLayout();
+    }
+
+    /**
+     * Sets a view event listener to handle touch events.
+     */
+    public void setViewEventListener(ViewEventListener listener) {
+        viewEventListener = Optional.of(listener);
+    }
+
+    /**
+     * Gets the rectangle of this window.
+     * Defensive-copied value is returned so caller-side can modify it.
+     */
+    public Optional<Rect> getWindowRect() {
+        if (windowRects.isPresent()) {
+            return Optional.of(new Rect(windowRects.get().window));
+        } else {
+            return Optional.absent();
+        }
+    }
+
+    /**
+     * Draws this candidate window.
+     */
+    public void draw(Canvas canvas) {
+        Preconditions.checkNotNull(canvas);
+        Preconditions.checkState(candidates.isPresent());
+        Preconditions.checkState(windowRects.isPresent());
+
+        CandidateWindow candidatesData = candidates.get();
+        WindowRects rects = windowRects.get();
+
+        canvas.drawRoundRect(
+                new RectF(rects.window), windowRoundRectRadius, windowRoundRectRadius,
+                windowBackgroundPaint);
+
+        if (rects.focus.isPresent()) {
+            canvas.drawRect(rects.focus.get(), focuseBackgroundPaint);
+        }
+
+        // Candidates, descriptions and shortcuts.
+        int focusedIndex = focusedOrTappedCandidateIndexOnPage.or(-1);
+        for (int i = 0; i < candidatesData.getCandidateCount(); ++i) {
+            Candidate candidate = candidatesData.getCandidate(i);
+            int offsetY = getCandidateRowOffsetY(i) + candidateOffsetY;
+            Paint paint = (i == focusedIndex) ? focusedCandidatePaint : candidatePaint;
+            drawTextWithLimit(canvas, candidate.getValue(), paint, 0, offsetY, maxCandidateWidth);
+            if (candidate.getAnnotation().hasDescription()) {
+                drawTextWithAlignAndLimit(
+                        canvas, candidate.getAnnotation().getDescription(), descriptionPaint,
+                        rects.window.right - windowHorizontalPadding, offsetY,
+                        Align.RIGHT, maxDescriptionWidth);
+            }
+            if (candidate.getAnnotation().hasShortcut()) {
+                drawTextWithAlign(
+                        canvas, candidate.getAnnotation().getShortcut(), shortcutPaint,
+                        shortcutCenterX, offsetY, Align.CENTER);
+            }
+        }
+
+        // Footer. Don't show if suggestion mode.
+        if (rects.pageIndicator.isPresent()) {
+            Rect indicatorRect = rects.pageIndicator.get();
+            drawHorizontalSeparator(
+                    canvas, separatorPaint, rects.window.left, rects.window.right, indicatorRect.top);
+            drawPageIndicator(canvas, footerPaint, indicatorRect);
+        }
+
+        // Scroll indicator
+        if (rects.scrollIndicator.isPresent()) {
+            canvas.drawRoundRect(
+                    rects.scrollIndicator.get(), scrollIndicatorRadius, scrollIndicatorRadius,
+                    scrollIndicatorPaint);
+        }
+    }
+
+    private void drawPageIndicator(Canvas canvas, Paint paint, Rect rect) {
         drawTextWithAlign(
-            canvas, candidate.getAnnotation().getShortcut(), shortcutPaint,
-            shortcutCenterX, offsetY, Align.CENTER);
-      }
+                canvas, String.format(FOOTER_TEXT_FORMAT,
+                        candidates.get().getFocusedIndex() + 1, totalCandidatesCount),
+                paint, rect.exactCenterX(), rect.exactCenterY() + footerTextCenterToBaseLineOffset,
+                Align.CENTER);
     }
 
-    // Footer. Don't show if suggestion mode.
-    if (rects.pageIndicator.isPresent()) {
-      Rect indicatorRect = rects.pageIndicator.get();
-      drawHorizontalSeparator(
-          canvas, separatorPaint, rects.window.left, rects.window.right, indicatorRect.top);
-      drawPageIndicator(canvas, footerPaint, indicatorRect);
+    private void drawHorizontalSeparator(Canvas canvas, Paint paint, int startX, int endX, int y) {
+        canvas.drawLine(
+                Math.min(startX, endX) + horizontalSeparatorPadding, y,
+                Math.max(startX, endX) - horizontalSeparatorPadding, y, paint);
     }
 
-    // Scroll indicator
-    if (rects.scrollIndicator.isPresent()) {
-      canvas.drawRoundRect(
-          rects.scrollIndicator.get(), scrollIndicatorRadius, scrollIndicatorRadius,
-          scrollIndicatorPaint);
-    }
-  }
+    /**
+     * Draws {@code text} into {@code canvas} with the text align and the limitation of text width.
+     * <p>
+     * If measured width of {@code text} is wider than maxWidth, the {@code text} is drawn with
+     * horizontal compression in order to fit {@code maxWidth}.
+     */
+    private void drawTextWithAlignAndLimit(
+            Canvas canvas, String text, Paint paint, float x, float y, Align align, float maxWidth) {
+        float textWidth = paint.measureText(text);
 
-  private void drawPageIndicator(Canvas canvas, Paint paint, Rect rect) {
-    drawTextWithAlign(
-        canvas, String.format(FOOTER_TEXT_FORMAT,
-            candidates.get().getFocusedIndex() + 1, totalCandidatesCount),
-        paint, rect.exactCenterX(), rect.exactCenterY() + footerTextCenterToBaseLineOffset,
-        Align.CENTER);
-  }
-
-  private void drawHorizontalSeparator(Canvas canvas, Paint paint, int startX, int endX, int y) {
-    canvas.drawLine(
-        Math.min(startX, endX) + horizontalSeparatorPadding, y,
-        Math.max(startX, endX) - horizontalSeparatorPadding, y, paint);
-  }
-
-  /**
-   * Draws {@code text} into {@code canvas} with the text align and the limitation of text width.
-   * <p>
-   * If measured width of {@code text} is wider than maxWidth, the {@code text} is drawn with
-   * horizontal compression in order to fit {@code maxWidth}.
-   */
-  private void drawTextWithAlignAndLimit(
-      Canvas canvas, String text, Paint paint, float x, float y, Align align, float maxWidth) {
-    float textWidth = paint.measureText(text);
-
-    int saveCount = canvas.save();
-    Align originalAlign = paint.getTextAlign();
-    try {
-      canvas.translate(x, y);
-      if (textWidth > maxWidth) {
-        // Use Canvas#scale() instead of Paint#setTextScaleX() for accurate scaling.
-        canvas.scale(maxWidth / textWidth, 1.0f);
-      }
-      paint.setTextAlign(align);
-      canvas.drawText(text, 0, 0, paint);
-    } finally {
-      canvas.restoreToCount(saveCount);
-      paint.setTextAlign(originalAlign);
-    }
-  }
-
-  /** See {@link #drawTextWithAlignAndLimit}. */
-  private void drawTextWithAlign(
-      Canvas canvas, String text, Paint paint, float x, float y, Align align) {
-    drawTextWithAlignAndLimit(canvas, text, paint, x, y, align, Float.MAX_VALUE);
-  }
-
-  /** See {@link #drawTextWithAlignAndLimit}. */
-  private void drawTextWithLimit(
-      Canvas canvas, String text, Paint paint, float x, float y, float maxWidth) {
-    drawTextWithAlignAndLimit(canvas, text, paint, x, y, paint.getTextAlign(), maxWidth);
-  }
-
-  private Optional<Integer> getTappingCandidate(MotionEvent event) {
-    if (!windowRects.isPresent()) {
-      return Optional.absent();
+        int saveCount = canvas.save();
+        Align originalAlign = paint.getTextAlign();
+        try {
+            canvas.translate(x, y);
+            if (textWidth > maxWidth) {
+                // Use Canvas#scale() instead of Paint#setTextScaleX() for accurate scaling.
+                canvas.scale(maxWidth / textWidth, 1.0f);
+            }
+            paint.setTextAlign(align);
+            canvas.drawText(text, 0, 0, paint);
+        } finally {
+            canvas.restoreToCount(saveCount);
+            paint.setTextAlign(originalAlign);
+        }
     }
 
-    WindowRects rects = windowRects.get();
-    int x = Math.round(event.getX());
-    int y = Math.round(event.getY());
-
-    if (!rects.window.contains(x, y)) {
-      return Optional.absent();
+    /**
+     * See {@link #drawTextWithAlignAndLimit}.
+     */
+    private void drawTextWithAlign(
+            Canvas canvas, String text, Paint paint, float x, float y, Align align) {
+        drawTextWithAlignAndLimit(canvas, text, paint, x, y, align, Float.MAX_VALUE);
     }
 
-    int candidateIndex = y / candidateHeight;
-    if (candidateIndex < candidates.get().getCandidateCount()) {
-      return Optional.of(candidateIndex);
-    } else {
-      return Optional.absent();
-    }
-  }
-
-  private void updateLayout() {
-    if (!candidates.isPresent() || !maxWidth.isPresent()) {
-      windowRects = Optional.absent();
-      return;
+    /**
+     * See {@link #drawTextWithAlignAndLimit}.
+     */
+    private void drawTextWithLimit(
+            Canvas canvas, String text, Paint paint, float x, float y, float maxWidth) {
+        drawTextWithAlignAndLimit(canvas, text, paint, x, y, paint.getTextAlign(), maxWidth);
     }
 
-    CandidateWindow candidatesData = candidates.get();
-    int candidateNumberOnPage = candidatesData.getCandidateCount();
-    boolean hasShortcut = candidatesData.getCandidateCount() > 0
-        && !candidatesData.getCandidate(0).getAnnotation().getShortcut().isEmpty();
-    int leftEdgePosition = hasShortcut
-        ? -windowHorizontalPadding - shortcutWidth : -windowHorizontalPadding;
+    private Optional<Integer> getTappingCandidate(MotionEvent event) {
+        if (!windowRects.isPresent()) {
+            return Optional.absent();
+        }
 
-    // Candidates and descriptions
-    maxCandidateWidth = 0;
-    maxDescriptionWidth = 0;
-    for (int i = 0; i < candidateNumberOnPage; ++i) {
-      Candidate candidate = candidatesData.getCandidate(i);
-      maxCandidateWidth = Math.max(
-          maxCandidateWidth, Math.round(candidatePaint.measureText(candidate.getValue())));
-      maxDescriptionWidth = Math.max(
-          maxDescriptionWidth,
-          Math.round(descriptionPaint.measureText(candidate.getAnnotation().getDescription())));
-    }
-    int fixedWidth =
-        -leftEdgePosition + candidateDescriptionMinimumPadding + windowHorizontalPadding;
-    int flexibleWidth = maxCandidateWidth + maxDescriptionWidth;
-    if (fixedWidth + flexibleWidth > maxWidth.get()) {
-      int availableWidth = maxWidth.get() - fixedWidth;
-      float shrinkRate = MozcUtil.clamp((float) availableWidth / flexibleWidth, 0f, 1f);
-      maxDescriptionWidth = Math.round(maxDescriptionWidth * shrinkRate);
-      maxCandidateWidth = availableWidth - maxDescriptionWidth;
-    }
-    int rightEdgePosition = Math.max(
-        Math.min(windowMinimumWidth, maxWidth.get()) + leftEdgePosition,
-        maxCandidateWidth + candidateDescriptionMinimumPadding + maxDescriptionWidth
-            + windowHorizontalPadding);
+        WindowRects rects = windowRects.get();
+        int x = Math.round(event.getX());
+        int y = Math.round(event.getY());
 
-    // Footer
-    int horizontalSeparatorY = candidateHeight * candidateNumberOnPage;
-    int bottomEdgePosition;
-    Optional<Rect> pageIndicatorRect;
-    if (candidatesData.getCategory() != Category.SUGGESTION) {
-      bottomEdgePosition = horizontalSeparatorY + footerHeight;
-      pageIndicatorRect = Optional.of(
-          new Rect(leftEdgePosition, horizontalSeparatorY, rightEdgePosition, bottomEdgePosition));
-    } else {
-      bottomEdgePosition = horizontalSeparatorY;
-      pageIndicatorRect = Optional.absent();
+        if (!rects.window.contains(x, y)) {
+            return Optional.absent();
+        }
+
+        int candidateIndex = y / candidateHeight;
+        if (candidateIndex < candidates.get().getCandidateCount()) {
+            return Optional.of(candidateIndex);
+        } else {
+            return Optional.absent();
+        }
     }
 
-    // Focus
-    Optional<Rect> focusRect = Optional.absent();
-    focusedOrTappedCandidateIndexOnPage = getTappedOrFocusedIndexOnPage();
-    if (focusedOrTappedCandidateIndexOnPage.isPresent()) {
-      int offsetY = candidateHeight * focusedOrTappedCandidateIndexOnPage.get();
-      focusRect = Optional.of(new Rect(
-          leftEdgePosition, offsetY, rightEdgePosition, offsetY + candidateHeight));
-    } else {
-      focusRect = Optional.absent();
+    private void updateLayout() {
+        if (!candidates.isPresent() || !maxWidth.isPresent()) {
+            windowRects = Optional.absent();
+            return;
+        }
+
+        CandidateWindow candidatesData = candidates.get();
+        int candidateNumberOnPage = candidatesData.getCandidateCount();
+        boolean hasShortcut = candidatesData.getCandidateCount() > 0
+                && !candidatesData.getCandidate(0).getAnnotation().getShortcut().isEmpty();
+        int leftEdgePosition = hasShortcut
+                ? -windowHorizontalPadding - shortcutWidth : -windowHorizontalPadding;
+
+        // Candidates and descriptions
+        maxCandidateWidth = 0;
+        maxDescriptionWidth = 0;
+        for (int i = 0; i < candidateNumberOnPage; ++i) {
+            Candidate candidate = candidatesData.getCandidate(i);
+            maxCandidateWidth = Math.max(
+                    maxCandidateWidth, Math.round(candidatePaint.measureText(candidate.getValue())));
+            maxDescriptionWidth = Math.max(
+                    maxDescriptionWidth,
+                    Math.round(descriptionPaint.measureText(candidate.getAnnotation().getDescription())));
+        }
+        int fixedWidth =
+                -leftEdgePosition + candidateDescriptionMinimumPadding + windowHorizontalPadding;
+        int flexibleWidth = maxCandidateWidth + maxDescriptionWidth;
+        if (fixedWidth + flexibleWidth > maxWidth.get()) {
+            int availableWidth = maxWidth.get() - fixedWidth;
+            float shrinkRate = MozcUtil.clamp((float) availableWidth / flexibleWidth, 0f, 1f);
+            maxDescriptionWidth = Math.round(maxDescriptionWidth * shrinkRate);
+            maxCandidateWidth = availableWidth - maxDescriptionWidth;
+        }
+        int rightEdgePosition = Math.max(
+                Math.min(windowMinimumWidth, maxWidth.get()) + leftEdgePosition,
+                maxCandidateWidth + candidateDescriptionMinimumPadding + maxDescriptionWidth
+                        + windowHorizontalPadding);
+
+        // Footer
+        int horizontalSeparatorY = candidateHeight * candidateNumberOnPage;
+        int bottomEdgePosition;
+        Optional<Rect> pageIndicatorRect;
+        if (candidatesData.getCategory() != Category.SUGGESTION) {
+            bottomEdgePosition = horizontalSeparatorY + footerHeight;
+            pageIndicatorRect = Optional.of(
+                    new Rect(leftEdgePosition, horizontalSeparatorY, rightEdgePosition, bottomEdgePosition));
+        } else {
+            bottomEdgePosition = horizontalSeparatorY;
+            pageIndicatorRect = Optional.absent();
+        }
+
+        // Focus
+        Optional<Rect> focusRect = Optional.absent();
+        focusedOrTappedCandidateIndexOnPage = getTappedOrFocusedIndexOnPage();
+        if (focusedOrTappedCandidateIndexOnPage.isPresent()) {
+            int offsetY = candidateHeight * focusedOrTappedCandidateIndexOnPage.get();
+            focusRect = Optional.of(new Rect(
+                    leftEdgePosition, offsetY, rightEdgePosition, offsetY + candidateHeight));
+        } else {
+            focusRect = Optional.absent();
+        }
+
+        // Scroll indicator
+        Optional<RectF> scrollIndicatorRect;
+        if (totalCandidatesCount > candidatesData.getPageSize()) {
+            int currentPageIndex = getCurrentPageNumber() - 1;
+            float scrollIndicatorHeight =
+                    (float) bottomEdgePosition * candidatesData.getPageSize() / totalCandidatesCount;
+            float scrollIndicatorOffset = scrollIndicatorHeight * currentPageIndex;
+            scrollIndicatorRect = Optional.of(new RectF(
+                    rightEdgePosition - scrollIndicatorWidth, scrollIndicatorOffset, rightEdgePosition,
+                    Math.min(bottomEdgePosition, scrollIndicatorOffset + scrollIndicatorHeight)));
+        } else {
+            scrollIndicatorRect = Optional.absent();
+        }
+
+        // Window
+        Rect windowRect = new Rect(leftEdgePosition, 0, rightEdgePosition, bottomEdgePosition);
+
+        windowRects = Optional.of(
+                new WindowRects(windowRect, focusRect, pageIndicatorRect, scrollIndicatorRect));
     }
 
-    // Scroll indicator
-    Optional<RectF> scrollIndicatorRect;
-    if (totalCandidatesCount > candidatesData.getPageSize()) {
-      int currentPageIndex = getCurrentPageNumber() - 1;
-      float scrollIndicatorHeight =
-          (float) bottomEdgePosition * candidatesData.getPageSize() / totalCandidatesCount;
-      float scrollIndicatorOffset = scrollIndicatorHeight * currentPageIndex;
-      scrollIndicatorRect = Optional.of(new RectF(
-          rightEdgePosition - scrollIndicatorWidth, scrollIndicatorOffset, rightEdgePosition,
-          Math.min(bottomEdgePosition, scrollIndicatorOffset + scrollIndicatorHeight)));
-    } else {
-      scrollIndicatorRect = Optional.absent();
+    private Optional<Integer> getTappedOrFocusedIndexOnPage() {
+        if (tappingCandidateIndex.isPresent()) {
+            return tappingCandidateIndex;
+        } else if (candidates.isPresent() && candidates.get().hasFocusedIndex()) {
+            return Optional.of(candidates.get().getFocusedIndex() % candidates.get().getPageSize());
+        }
+        return Optional.absent();
     }
 
-    // Window
-    Rect windowRect = new Rect(leftEdgePosition, 0, rightEdgePosition, bottomEdgePosition);
-
-    windowRects = Optional.of(
-        new WindowRects(windowRect, focusRect, pageIndicatorRect, scrollIndicatorRect));
-  }
-
-  private Optional<Integer> getTappedOrFocusedIndexOnPage() {
-    if (tappingCandidateIndex.isPresent()) {
-      return tappingCandidateIndex;
-    } else if (candidates.isPresent() && candidates.get().hasFocusedIndex()) {
-      return Optional.of(candidates.get().getFocusedIndex() % candidates.get().getPageSize());
+    private int getCandidateRowOffsetY(int index) {
+        return index * candidateHeight;
     }
-    return Optional.absent();
-  }
 
-  private int getCandidateRowOffsetY(int index) {
-    return index * candidateHeight;
-  }
-
-  private int getCurrentPageNumber() {
-    return (int) Math.ceil(
-        (float) (candidates.get().getFocusedIndex() + 1) / candidates.get().getPageSize());
-  }
+    private int getCurrentPageNumber() {
+        return (int) Math.ceil(
+                (float) (candidates.get().getFocusedIndex() + 1) / candidates.get().getPageSize());
+    }
 }

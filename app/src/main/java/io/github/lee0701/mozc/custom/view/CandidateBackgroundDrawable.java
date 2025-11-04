@@ -29,8 +29,6 @@
 
 package io.github.lee0701.mozc.custom.view;
 
-import com.google.common.base.Optional;
-
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.LinearGradient;
@@ -39,84 +37,88 @@ import android.graphics.Rect;
 import android.graphics.Shader;
 import android.graphics.Shader.TileMode;
 
+import com.google.common.base.Optional;
+
 /**
  * Drawable to render a candidate background.
  *
  */
 public class CandidateBackgroundDrawable extends BaseBackgroundDrawable {
 
-  private final int topColor;
-  private final int bottomColor;
-  private final int highlightColor;
-  private final int borderColor;
+    private final int topColor;
+    private final int bottomColor;
+    private final int highlightColor;
+    private final int borderColor;
 
-  private int left;
-  private int top;
-  private int right;
-  private int bottom;
+    private int left;
+    private int top;
+    private int right;
+    private int bottom;
 
-  /** Cached Paint instance to reuse for performance reason. */
-  private final Paint paint = new Paint();
-  private Optional<Shader> shader = Optional.absent();
+    /**
+     * Cached Paint instance to reuse for performance reason.
+     */
+    private final Paint paint = new Paint();
+    private Optional<Shader> shader = Optional.absent();
 
-  public CandidateBackgroundDrawable(
-      int leftPadding, int topPadding, int rightPadding, int bottomPadding,
-      int topColor, int bottomColor, int highlightColor, int borderColor) {
-    super(leftPadding, topPadding, rightPadding, bottomPadding);
-    this.topColor = topColor;
-    this.bottomColor = bottomColor;
-    this.highlightColor = highlightColor;
-    this.borderColor = borderColor;
-  }
-
-  @Override
-  public void draw(Canvas canvas) {
-    if (isCanvasRectEmpty()) {
-      return;
+    public CandidateBackgroundDrawable(
+            int leftPadding, int topPadding, int rightPadding, int bottomPadding,
+            int topColor, int bottomColor, int highlightColor, int borderColor) {
+        super(leftPadding, topPadding, rightPadding, bottomPadding);
+        this.topColor = topColor;
+        this.bottomColor = bottomColor;
+        this.highlightColor = highlightColor;
+        this.borderColor = borderColor;
     }
 
-    // Local variable cache for better performance.
-    Paint paint = this.paint;
-    int left = this.left;
-    int top = this.top;
-    int right = this.right;
-    int bottom = this.bottom;
+    @Override
+    public void draw(Canvas canvas) {
+        if (isCanvasRectEmpty()) {
+            return;
+        }
 
-    // Render border color.
-    if (Color.alpha(borderColor) != 0) {
-      paint.reset();
-      paint.setColor(borderColor);
-      canvas.drawRect(left, top, right, bottom, paint);
+        // Local variable cache for better performance.
+        Paint paint = this.paint;
+        int left = this.left;
+        int top = this.top;
+        int right = this.right;
+        int bottom = this.bottom;
+
+        // Render border color.
+        if (Color.alpha(borderColor) != 0) {
+            paint.reset();
+            paint.setColor(borderColor);
+            canvas.drawRect(left, top, right, bottom, paint);
+        }
+
+        // Render left/top highlight.
+        if (Color.alpha(highlightColor) != 0) {
+            paint.reset();
+            paint.setColor(highlightColor);
+            canvas.drawRect(left, top, Math.max(left, right - 1), Math.max(top, bottom - 1), paint);
+        }
+
+        // Render filling color.
+        if (shader.isPresent()) {
+            paint.reset();
+            paint.setShader(shader.get());
+            canvas.drawRect(left + 1, top + 1,
+                    Math.max(left + 1, right - 1), Math.max(top + 1, bottom - 1), paint);
+        }
     }
 
-    // Render left/top highlight.
-    if (Color.alpha(highlightColor) != 0) {
-      paint.reset();
-      paint.setColor(highlightColor);
-      canvas.drawRect(left, top, Math.max(left, right - 1), Math.max(top, bottom - 1), paint);
-    }
+    @Override
+    protected void onBoundsChange(Rect rect) {
+        super.onBoundsChange(rect);
 
-    // Render filling color.
-    if (shader.isPresent()) {
-      paint.reset();
-      paint.setShader(shader.get());
-      canvas.drawRect(left + 1, top + 1,
-                      Math.max(left + 1, right - 1), Math.max(top + 1, bottom - 1), paint);
+        Rect canvasRect = getCanvasRect();
+        left = canvasRect.left;
+        top = canvasRect.top;
+        right = canvasRect.right;
+        bottom = canvasRect.bottom;
+        if (Color.alpha(topColor | bottomColor) != 0) {
+            shader = Optional.of(
+                    new LinearGradient(0, top, 0, bottom, topColor, bottomColor, TileMode.CLAMP));
+        }
     }
-  }
-
-  @Override
-  protected void onBoundsChange(Rect rect) {
-    super.onBoundsChange(rect);
-
-    Rect canvasRect = getCanvasRect();
-    left = canvasRect.left;
-    top = canvasRect.top;
-    right = canvasRect.right;
-    bottom = canvasRect.bottom;
-    if (Color.alpha(topColor | bottomColor) != 0) {
-      shader = Optional.<Shader>of(
-          new LinearGradient(0, top, 0, bottom, topColor, bottomColor, TileMode.CLAMP));
-    }
-  }
 }

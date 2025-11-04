@@ -33,99 +33,99 @@ import android.util.Log;
 
 /**
  * Logger. Same as android.util.Log.
- *
+ * <p>
  * Note that each methods decides whether it actually writes a log or not based on the result of
  * {@link Log#isLoggable(String, int)} so you can omit following idiom.
  * {@code
  * if (MozcLog.isLoggable(Log.INFO)) {
- *   MozcLog.i("foobar");
+ * MozcLog.i("foobar");
  * }
  * }
  * But for such a log entry which is very frequently created and is very heavy to create,
  * you can use (and are recommended to use) the above idiom.
- *
+ * <p>
  * As described in Log's JavaDoc, the default threshold is INFO.
  * You can change the threshold by following command (on host side).
  * {@code adb shell setprop log.tag.Mozc VERVOSE}
- *
+ * <p>
  * Q : "setprop" is tedious. Why do we have to depend on this mechanism?
  * A : By this way we can get detailed log even if we run release version.
- *     This is important when we are measuring the performance.
- *
+ * This is important when we are measuring the performance.
+ * <p>
  * Log level criteria:
  * VERVOSE - This level can be very heavy.
  * DEBUG - Detailed information
- *         but cannot be very heavy because this will be used to measure performance.
+ * but cannot be very heavy because this will be used to measure performance.
  * INFO - Usually the log will be show.
  * WARNING - For non-fatal error.
  * ERROR - For fatal (will exit abnormally) error.
  *
  */
 public class MozcLog {
-  private MozcLog() {
-  }
-
-  public static boolean isLoggable(int logLevel) {
-    return Log.isLoggable(MozcUtil.LOGTAG, logLevel);
-  }
-
-  public static void v(String msg) {
-    if (isLoggable(Log.VERBOSE)) {
-      Log.v(MozcUtil.LOGTAG, msg);
+    private MozcLog() {
     }
-  }
 
-  public static void v(String msg, Throwable e) {
-    if (isLoggable(Log.VERBOSE)) {
-      Log.v(MozcUtil.LOGTAG, msg, e);
+    public static boolean isLoggable(int logLevel) {
+        return Log.isLoggable(MozcUtil.LOGTAG, logLevel);
     }
-  }
 
-  public static void d(String msg) {
-    if (isLoggable(Log.DEBUG)) {
-      Log.d(MozcUtil.LOGTAG, msg);
+    public static void v(String msg) {
+        if (isLoggable(Log.VERBOSE)) {
+            Log.v(MozcUtil.LOGTAG, msg);
+        }
     }
-  }
 
-  public static void d(String msg, Throwable e) {
-    if (isLoggable(Log.DEBUG)) {
-      Log.d(MozcUtil.LOGTAG, msg, e);
+    public static void v(String msg, Throwable e) {
+        if (isLoggable(Log.VERBOSE)) {
+            Log.v(MozcUtil.LOGTAG, msg, e);
+        }
     }
-  }
 
-  public static void i(String msg) {
-    if (isLoggable(Log.INFO)) {
-      Log.i(MozcUtil.LOGTAG, msg);
+    public static void d(String msg) {
+        if (isLoggable(Log.DEBUG)) {
+            Log.d(MozcUtil.LOGTAG, msg);
+        }
     }
-  }
 
-  public static void i(String msg, Throwable e) {
-    if (isLoggable(Log.INFO)) {
-      Log.i(MozcUtil.LOGTAG, msg, e);
+    public static void d(String msg, Throwable e) {
+        if (isLoggable(Log.DEBUG)) {
+            Log.d(MozcUtil.LOGTAG, msg, e);
+        }
     }
-  }
 
-  public static void w(String msg) {
-    if (isLoggable(Log.WARN)) {
-      Log.w(MozcUtil.LOGTAG, msg);
+    public static void i(String msg) {
+        if (isLoggable(Log.INFO)) {
+            Log.i(MozcUtil.LOGTAG, msg);
+        }
     }
-  }
 
-  public static void w(String msg, Throwable e) {
-    if (isLoggable(Log.WARN)) {
-      Log.w(MozcUtil.LOGTAG, msg, e);
+    public static void i(String msg, Throwable e) {
+        if (isLoggable(Log.INFO)) {
+            Log.i(MozcUtil.LOGTAG, msg, e);
+        }
     }
-  }
 
-  public static void e(String msg) {
-    if (isLoggable(Log.ERROR)) {
-      Log.e(MozcUtil.LOGTAG, msg);
+    public static void w(String msg) {
+        if (isLoggable(Log.WARN)) {
+            Log.w(MozcUtil.LOGTAG, msg);
+        }
     }
-  }
 
-  public static void e(String msg, Throwable e) {
-    if (isLoggable(Log.ERROR)) {
-      Log.e(MozcUtil.LOGTAG, msg, e);
+    public static void w(String msg, Throwable e) {
+        if (isLoggable(Log.WARN)) {
+            Log.w(MozcUtil.LOGTAG, msg, e);
+        }
     }
-  }
+
+    public static void e(String msg) {
+        if (isLoggable(Log.ERROR)) {
+            Log.e(MozcUtil.LOGTAG, msg);
+        }
+    }
+
+    public static void e(String msg, Throwable e) {
+        if (isLoggable(Log.ERROR)) {
+            Log.e(MozcUtil.LOGTAG, msg, e);
+        }
+    }
 }

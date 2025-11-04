@@ -29,80 +29,81 @@
 
 package io.github.lee0701.mozc.custom.hardwarekeyboard;
 
-import io.github.lee0701.mozc.custom.hardwarekeyboard.KeyEventMapperFactory.KeyEventMapper;
-import com.google.common.base.Preconditions;
-
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
+
+import com.google.common.base.Preconditions;
+
+import io.github.lee0701.mozc.custom.hardwarekeyboard.KeyEventMapperFactory.KeyEventMapper;
 
 /**
  * Compact and mutable KeyEvent for internal use.
  */
 class CompactKeyEvent {
 
-  private int keyCode;
-  private int metaState;
-  private int unicodeCharacter;
-  private int combiningAccent;
-  private int scanCode;
+    private int keyCode;
+    private int metaState;
+    private int unicodeCharacter;
+    private final int combiningAccent;
+    private int scanCode;
 
-  public CompactKeyEvent(KeyEvent keyEvent) {
-    Preconditions.checkNotNull(keyEvent);
-    keyCode = keyEvent.getKeyCode();
-    metaState = keyEvent.getMetaState();
-    int flagedCodepoint = keyEvent.getUnicodeChar();
-    // TODO(team): Come up with a better definition of the "character" when
-    // KeyCharacterMap.COMBINING_ACCENT bit is set.
-    unicodeCharacter = flagedCodepoint & KeyCharacterMap.COMBINING_ACCENT_MASK;
-    combiningAccent = flagedCodepoint & KeyCharacterMap.COMBINING_ACCENT_MASK;
-    scanCode = keyEvent.getScanCode();
-  }
+    public CompactKeyEvent(KeyEvent keyEvent) {
+        Preconditions.checkNotNull(keyEvent);
+        keyCode = keyEvent.getKeyCode();
+        metaState = keyEvent.getMetaState();
+        int flagedCodepoint = keyEvent.getUnicodeChar();
+        // TODO(team): Come up with a better definition of the "character" when
+        // KeyCharacterMap.COMBINING_ACCENT bit is set.
+        unicodeCharacter = flagedCodepoint & KeyCharacterMap.COMBINING_ACCENT_MASK;
+        combiningAccent = flagedCodepoint & KeyCharacterMap.COMBINING_ACCENT_MASK;
+        scanCode = keyEvent.getScanCode();
+    }
 
-  /**
-   * Construct an instance and apply overlay mapping.
-   */
-  public CompactKeyEvent(KeyEvent keyEvent, KeyEventMapper overlayMapper) {
-    this(keyEvent);
-    Preconditions.checkNotNull(overlayMapper).applyMapping(this);
-  }
+    /**
+     * Construct an instance and apply overlay mapping.
+     */
+    public CompactKeyEvent(KeyEvent keyEvent, KeyEventMapper overlayMapper) {
+        this(keyEvent);
+        Preconditions.checkNotNull(overlayMapper).applyMapping(this);
+    }
 
-  public int getKeyCode() {
-    return keyCode;
-  }
+    public int getKeyCode() {
+        return keyCode;
+    }
 
-  void setKeyCode(int keyCode) {
-    this.keyCode = keyCode;
-  }
+    void setKeyCode(int keyCode) {
+        this.keyCode = keyCode;
+    }
 
-  public int getMetaState() {
-    return metaState;
-  }
+    public int getMetaState() {
+        return metaState;
+    }
 
-  void setMetaState(int metaState) {
-    this.metaState = metaState;
-  }
+    void setMetaState(int metaState) {
+        this.metaState = metaState;
+    }
 
-  public int getCombiningAccent() {
-    return combiningAccent;
-  }
+    public int getCombiningAccent() {
+        return combiningAccent;
+    }
 
-  public int getDeadChar(int character) {
-    return KeyCharacterMap.getDeadChar(combiningAccent, character);
-  }
+    public int getDeadChar(int character) {
+        return KeyCharacterMap.getDeadChar(combiningAccent, character);
+    }
 
-  public int getUnicodeCharacter() {
-    return unicodeCharacter;
-  }
+    public int getUnicodeCharacter() {
+        return unicodeCharacter;
+    }
 
-  void setUnicodeCharacter(int unicodeCharacter) {
-    this.unicodeCharacter = unicodeCharacter;
-  }
+    void setUnicodeCharacter(int unicodeCharacter) {
+        this.unicodeCharacter = unicodeCharacter;
+    }
 
-  public int getScanCode() {
-    return scanCode;
-  }
+    public int getScanCode() {
+        return scanCode;
+    }
 
-  void setScanCode(int scanCode) {
-    this.scanCode = scanCode;
-  }
+    void setScanCode(int scanCode) {
+        this.scanCode = scanCode;
+    }
 }

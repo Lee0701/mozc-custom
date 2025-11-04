@@ -30,36 +30,37 @@
 package io.github.lee0701.mozc.custom.preference;
 
 //import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.GenericStorageEntry.StorageType;
-import org.mozc.android.inputmethod.japanese.session.SessionExecutor;
-import org.mozc.android.inputmethod.japanese.session.SessionHandlerFactory;
 
 import android.content.Context;
 import android.content.DialogInterface;
 import android.preference.DialogPreference;
 import android.util.AttributeSet;
 
+import org.mozc.android.inputmethod.japanese.session.SessionExecutor;
+import org.mozc.android.inputmethod.japanese.session.SessionHandlerFactory;
+
 /**
  * A DialogPreference to clear symbol histories.
  *
  */
 public class ClearSymbolHistoryDialogPreference extends DialogPreference {
-  public ClearSymbolHistoryDialogPreference(
-      Context context, AttributeSet attrs, int defStyle) {
-    super(context, attrs, defStyle);
-  }
+    public ClearSymbolHistoryDialogPreference(
+            Context context, AttributeSet attrs, int defStyle) {
+        super(context, attrs, defStyle);
+    }
 
-  public ClearSymbolHistoryDialogPreference(Context context, AttributeSet attrs) {
-    super(context, attrs);
-  }
+    public ClearSymbolHistoryDialogPreference(Context context, AttributeSet attrs) {
+        super(context, attrs);
+    }
 
-  @Override
-  public void onClick(DialogInterface dialog, int which) {
-    if (which == DialogInterface.BUTTON_POSITIVE) {
-      SessionExecutor sessionExecutor = SessionExecutor.getInstanceInitializedIfNecessary(
-          new SessionHandlerFactory(getContext()), getContext());
+    @Override
+    public void onClick(DialogInterface dialog, int which) {
+        if (which == DialogInterface.BUTTON_POSITIVE) {
+            SessionExecutor sessionExecutor = SessionExecutor.getInstanceInitializedIfNecessary(
+                    new SessionHandlerFactory(getContext()), getContext());
 //      sessionExecutor.clearStorage(StorageType.EMOJI_HISTORY);
 //      sessionExecutor.clearStorage(StorageType.EMOTICON_HISTORY);
 //      sessionExecutor.clearStorage(StorageType.SYMBOL_HISTORY);
+        }
     }
-  }
 }

@@ -29,160 +29,162 @@
 
 package io.github.lee0701.mozc.custom;
 
-import com.google.common.annotations.VisibleForTesting;
-
 import android.media.AudioManager;
+
+import com.google.common.annotations.VisibleForTesting;
 
 /**
  * FeedbackManager manages feed back events, like haptic and sound.
  *
  */
 public class FeedbackManager {
-  /**
-   * Evnet types.
-   */
-  public enum FeedbackEvent {
     /**
-     * Fired when a key is down.
+     * Evnet types.
      */
-    KEY_DOWN(true, AudioManager.FX_KEYPRESS_STANDARD),
-    /**
-     * Fired when a candidate is selected by using candidate view.
-     */
-    CANDIDATE_SELECTED(true, AudioManager.FX_KEY_CLICK),
-    /**
-     * Fired when the input view is expanded (the candidate view is fold).
-     */
-    INPUTVIEW_EXPAND(true, AudioManager.FX_KEYPRESS_STANDARD),
-    /**
-     * Fired when the input view is fold (the candidate view is expand).
-     */
-    INPUTVIEW_FOLD(true, AudioManager.FX_KEYPRESS_STANDARD),
-    /**
-     * Fired when the symbol input view is closed.
-     */
-    SYMBOL_INPUTVIEW_CLOSED(true, AudioManager.FX_KEYPRESS_STANDARD),
-    /**
-     * Fired when a minor category is selected.
-     */
-    SYMBOL_INPUTVIEW_MINOR_CATEGORY_SELECTED(true, AudioManager.FX_KEYPRESS_STANDARD),
-    /**
-     * Fired when a major category is selected.
-     */
-    SYMBOL_INPUTVIEW_MAJOR_CATEGORY_SELECTED(true, AudioManager.FX_KEYPRESS_STANDARD),
-    /**
-     * Fired when microphone button is touched.
-     */
-    MICROPHONE_BUTTON_DOWN(true, AudioManager.FX_KEYPRESS_STANDARD),
-    /**
-     * Fired when the hardware composition button in narrow frame is touched.
-     */
-    NARROW_FRAME_HARDWARE_COMPOSITION_BUTTON_DOWN(true, AudioManager.FX_KEYPRESS_STANDARD),
-    /**
-     * Fired when the widen button in narrow frame is touched.
-     */
-    NARROW_FRAME_WIDEN_BUTTON_DOWN(true, AudioManager.FX_KEYPRESS_STANDARD),
-    ;
-    // Constant value to indicate no sound feedback should be played.
-    static final int NO_SOUND = -1;
-    // If true, haptic feedback is fired.
-    final boolean isHapticFeedbackTarget;
-    final int soundEffectType;
+    public enum FeedbackEvent {
+        /**
+         * Fired when a key is down.
+         */
+        KEY_DOWN(true, AudioManager.FX_KEYPRESS_STANDARD),
+        /**
+         * Fired when a candidate is selected by using candidate view.
+         */
+        CANDIDATE_SELECTED(true, AudioManager.FX_KEY_CLICK),
+        /**
+         * Fired when the input view is expanded (the candidate view is fold).
+         */
+        INPUTVIEW_EXPAND(true, AudioManager.FX_KEYPRESS_STANDARD),
+        /**
+         * Fired when the input view is fold (the candidate view is expand).
+         */
+        INPUTVIEW_FOLD(true, AudioManager.FX_KEYPRESS_STANDARD),
+        /**
+         * Fired when the symbol input view is closed.
+         */
+        SYMBOL_INPUTVIEW_CLOSED(true, AudioManager.FX_KEYPRESS_STANDARD),
+        /**
+         * Fired when a minor category is selected.
+         */
+        SYMBOL_INPUTVIEW_MINOR_CATEGORY_SELECTED(true, AudioManager.FX_KEYPRESS_STANDARD),
+        /**
+         * Fired when a major category is selected.
+         */
+        SYMBOL_INPUTVIEW_MAJOR_CATEGORY_SELECTED(true, AudioManager.FX_KEYPRESS_STANDARD),
+        /**
+         * Fired when microphone button is touched.
+         */
+        MICROPHONE_BUTTON_DOWN(true, AudioManager.FX_KEYPRESS_STANDARD),
+        /**
+         * Fired when the hardware composition button in narrow frame is touched.
+         */
+        NARROW_FRAME_HARDWARE_COMPOSITION_BUTTON_DOWN(true, AudioManager.FX_KEYPRESS_STANDARD),
+        /**
+         * Fired when the widen button in narrow frame is touched.
+         */
+        NARROW_FRAME_WIDEN_BUTTON_DOWN(true, AudioManager.FX_KEYPRESS_STANDARD),
+        ;
+        // Constant value to indicate no sound feedback should be played.
+        static final int NO_SOUND = -1;
+        // If true, haptic feedback is fired.
+        final boolean isHapticFeedbackTarget;
+        final int soundEffectType;
 
-    /**
-     * @param isHapticFeedbackTarget true if the device should vibrate at the event.
-     * @param soundEffectType the effect type of the feedback sound,
-     *        defined in {@link AudioManager}.
-     *        FeedbackListener.NO_SOUND for no sound feedback.
-     */
-    private FeedbackEvent(boolean isHapticFeedbackTarget, int soundEffectType) {
-      this.isHapticFeedbackTarget = isHapticFeedbackTarget;
-      this.soundEffectType = soundEffectType;
+        /**
+         * @param isHapticFeedbackTarget true if the device should vibrate at the event.
+         * @param soundEffectType        the effect type of the feedback sound,
+         *                               defined in {@link AudioManager}.
+         *                               FeedbackListener.NO_SOUND for no sound feedback.
+         */
+        FeedbackEvent(boolean isHapticFeedbackTarget, int soundEffectType) {
+            this.isHapticFeedbackTarget = isHapticFeedbackTarget;
+            this.soundEffectType = soundEffectType;
+        }
+
+        /**
+         * @param isHapticFeedbackTarget true if the device should vibrate at the event.
+         */
+        FeedbackEvent(boolean isHapticFeedbackTarget) {
+            this(isHapticFeedbackTarget, NO_SOUND);
+        }
     }
 
-    /**
-     * @param isHapticFeedbackTarget true if the device should vibrate at the event.
-     */
-    private FeedbackEvent(boolean isHapticFeedbackTarget) {
-      this(isHapticFeedbackTarget, NO_SOUND);
+    interface FeedbackListener {
+        /**
+         * Called when vibrate feedback is fired.
+         *
+         * @param duration the duration of vibration in millisecond.
+         */
+        void onVibrate(long duration);
+
+        /**
+         * Called when sound feedback is fired.
+         *
+         * @param soundEffectType the effect type of the sound to be played.
+         *                        If FeedbackManager.NO_SOUND, no sound will be played.
+         */
+        void onSound(int soundEffectType, float volume);
     }
-  }
 
-  interface FeedbackListener {
+    private boolean isHapticFeedbackEnabled;
+    private long hapticFeedbackDuration = 30;  // 30ms by default.
+    private boolean isSoundFeedbackEnabled;
+    private float soundFeedbackVolume = 0.4f;  // System default volume parameter.
+    @VisibleForTesting
+    final FeedbackListener feedbackListener;
+
     /**
-     * Called when vibrate feedback is fired.
-     * @param duration the duration of vibration in millisecond.
+     * @param listener the listener which is called when feedback event is fired.
      */
-    public void onVibrate(long duration);
-
-    /**
-     * Called when sound feedback is fired.
-     *
-     * @param soundEffectType the effect type of the sound to be played.
-     *        If FeedbackManager.NO_SOUND, no sound will be played.
-     */
-    public void onSound(int soundEffectType, float volume);
-  }
-
-  private boolean isHapticFeedbackEnabled;
-  private long hapticFeedbackDuration = 30;  // 30ms by default.
-  private boolean isSoundFeedbackEnabled;
-  private float soundFeedbackVolume = 0.4f;  // System default volume parameter.
-  @VisibleForTesting final FeedbackListener feedbackListener;
-
-  /**
-   * @param listener the listener which is called when feedback event is fired.
-   */
-  FeedbackManager(FeedbackListener listener) {
-    // TODO(matsuzakit): This initial value should be changed
-    //     after implementing setting screen.
-    isHapticFeedbackEnabled = false;
-    isSoundFeedbackEnabled = false;
-    this.feedbackListener = listener;
-  }
-
-  void fireFeedback(FeedbackEvent event) {
-    if (isHapticFeedbackEnabled && event.isHapticFeedbackTarget) {
-      feedbackListener.onVibrate(hapticFeedbackDuration);
+    FeedbackManager(FeedbackListener listener) {
+        // TODO(matsuzakit): This initial value should be changed
+        //     after implementing setting screen.
+        isHapticFeedbackEnabled = false;
+        isSoundFeedbackEnabled = false;
+        this.feedbackListener = listener;
     }
-    if (isSoundFeedbackEnabled && event.soundEffectType != FeedbackEvent.NO_SOUND) {
-      feedbackListener.onSound(event.soundEffectType, soundFeedbackVolume);
+
+    void fireFeedback(FeedbackEvent event) {
+        if (isHapticFeedbackEnabled && event.isHapticFeedbackTarget) {
+            feedbackListener.onVibrate(hapticFeedbackDuration);
+        }
+        if (isSoundFeedbackEnabled && event.soundEffectType != FeedbackEvent.NO_SOUND) {
+            feedbackListener.onSound(event.soundEffectType, soundFeedbackVolume);
+        }
     }
-  }
 
-  boolean isHapticFeedbackEnabled() {
-    return isHapticFeedbackEnabled;
-  }
+    boolean isHapticFeedbackEnabled() {
+        return isHapticFeedbackEnabled;
+    }
 
-  void setHapticFeedbackEnabled(boolean enable) {
-    isHapticFeedbackEnabled = enable;
-  }
+    void setHapticFeedbackEnabled(boolean enable) {
+        isHapticFeedbackEnabled = enable;
+    }
 
-  long getHapticFeedbackDuration() {
-    return hapticFeedbackDuration;
-  }
+    long getHapticFeedbackDuration() {
+        return hapticFeedbackDuration;
+    }
 
-  void setHapticFeedbackDuration(long duration) {
-    this.hapticFeedbackDuration = duration;
-  }
+    void setHapticFeedbackDuration(long duration) {
+        this.hapticFeedbackDuration = duration;
+    }
 
-  boolean isSoundFeedbackEnabled() {
-    return isSoundFeedbackEnabled;
-  }
+    boolean isSoundFeedbackEnabled() {
+        return isSoundFeedbackEnabled;
+    }
 
-  void setSoundFeedbackEnabled(boolean enable) {
-    isSoundFeedbackEnabled = enable;
-  }
+    void setSoundFeedbackEnabled(boolean enable) {
+        isSoundFeedbackEnabled = enable;
+    }
 
-  float getSoundFeedbackVolume() {
-    return soundFeedbackVolume;
-  }
+    float getSoundFeedbackVolume() {
+        return soundFeedbackVolume;
+    }
 
-  void setSoundFeedbackVolume(float volume) {
-    this.soundFeedbackVolume = volume;
-  }
+    void setSoundFeedbackVolume(float volume) {
+        this.soundFeedbackVolume = volume;
+    }
 
-  void release() {
-    setSoundFeedbackEnabled(false);
-  }
+    void release() {
+        setSoundFeedbackEnabled(false);
+    }
 }

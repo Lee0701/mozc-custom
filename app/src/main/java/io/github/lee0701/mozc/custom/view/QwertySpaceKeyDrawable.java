@@ -31,27 +31,29 @@ package io.github.lee0701.mozc.custom.view;
 
 import android.graphics.Rect;
 
-/** The space key implementation for qwerty keyboards. */
+/**
+ * The space key implementation for qwerty keyboards.
+ */
 public class QwertySpaceKeyDrawable extends RoundRectKeyDrawable {
-  private static final int UNLIMITED_HEIGHT = 0;
-  private final int height;
+    private static final int UNLIMITED_HEIGHT = 0;
+    private final int height;
 
-  public QwertySpaceKeyDrawable(
-      int height, int leftPadding, int topPadding, int rightPadding, int bottomPadding,
-      int roundSize, int topColor, int bottomColor, int highlightColor, int shadowColor) {
-    super(leftPadding, topPadding, rightPadding, bottomPadding,
-          roundSize, topColor, bottomColor, highlightColor, shadowColor);
-    this.height = height;
-  }
-
-  @Override
-  protected void onBoundsChange(Rect bounds) {
-    if (height != UNLIMITED_HEIGHT && bounds.height() > height) {
-      int topPadding = (bounds.height() - height) / 2;
-      int bottomPadding = (bounds.height() - height) - topPadding;
-      bounds = new Rect(bounds.left, bounds.top + topPadding,
-                        bounds.right, bounds.bottom - bottomPadding);
+    public QwertySpaceKeyDrawable(
+            int height, int leftPadding, int topPadding, int rightPadding, int bottomPadding,
+            int roundSize, int topColor, int bottomColor, int highlightColor, int shadowColor) {
+        super(leftPadding, topPadding, rightPadding, bottomPadding,
+                roundSize, topColor, bottomColor, highlightColor, shadowColor);
+        this.height = height;
     }
-    super.onBoundsChange(bounds);
-  }
+
+    @Override
+    protected void onBoundsChange(Rect bounds) {
+        if (height != UNLIMITED_HEIGHT && bounds.height() > height) {
+            int topPadding = (bounds.height() - height) / 2;
+            int bottomPadding = (bounds.height() - height) - topPadding;
+            bounds = new Rect(bounds.left, bounds.top + topPadding,
+                    bounds.right, bounds.bottom - bottomPadding);
+        }
+        super.onBoundsChange(bounds);
+    }
 }

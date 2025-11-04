@@ -29,11 +29,12 @@
 
 package io.github.lee0701.mozc.custom.ui;
 
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidateWindow.CandidateWord;
+import android.text.Layout;
+
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 
-import android.text.Layout;
+import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidateWindow.CandidateWord;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,145 +46,157 @@ import java.util.List;
  */
 public class CandidateLayout {
 
-  /** Horizontal span which is occupied by a CandidateWord. */
-  public static class Span {
-    private final Optional<CandidateWord> candidateWord;
-    private float left;
-    private float right;
-
-    private final float valueWidth;
-    private final float descriptionWidth;
-    private final List<String> splitDescriptionList;
-
     /**
-     * This is a cache to improve the rendering performance.
-     * In theory, it's better to have another structure to keep the cache,
-     * but put this here for the simpler implementation.
+     * Horizontal span which is occupied by a CandidateWord.
      */
-    private Optional<Layout> cachedLayout = Optional.absent();
+    public static class Span {
+        private final Optional<CandidateWord> candidateWord;
+        private float left;
+        private float right;
 
-    /** @param candidateWord the candidate word of this span. Absent if the span is
-     * reserved empty one, which is for folding button. */
-    public Span(Optional<CandidateWord> candidateWord,
-                float valueWidth, float descriptionWidth,
-                List<String> splitDescriptionList) {
-      this.candidateWord = Preconditions.checkNotNull(candidateWord);
-      this.valueWidth = valueWidth;
-      this.descriptionWidth = descriptionWidth;
-      this.splitDescriptionList = Preconditions.checkNotNull(splitDescriptionList);
+        private final float valueWidth;
+        private final float descriptionWidth;
+        private final List<String> splitDescriptionList;
+
+        /**
+         * This is a cache to improve the rendering performance.
+         * In theory, it's better to have another structure to keep the cache,
+         * but put this here for the simpler implementation.
+         */
+        private Optional<Layout> cachedLayout = Optional.absent();
+
+        /**
+         * @param candidateWord the candidate word of this span. Absent if the span is
+         *                      reserved empty one, which is for folding button.
+         */
+        public Span(Optional<CandidateWord> candidateWord,
+                    float valueWidth, float descriptionWidth,
+                    List<String> splitDescriptionList) {
+            this.candidateWord = Preconditions.checkNotNull(candidateWord);
+            this.valueWidth = valueWidth;
+            this.descriptionWidth = descriptionWidth;
+            this.splitDescriptionList = Preconditions.checkNotNull(splitDescriptionList);
+        }
+
+        public Optional<CandidateWord> getCandidateWord() {
+            return candidateWord;
+        }
+
+        public float getLeft() {
+            return left;
+        }
+
+        /**
+         * @param left the position of the left edge. Must be non negative value.
+         */
+        public void setLeft(float left) {
+            Preconditions.checkArgument(left >= 0);
+            this.left = left;
+        }
+
+        public float getRight() {
+            return right;
+        }
+
+        /**
+         * @param right the position of the right edge. Must be equal or greater than left.
+         */
+        public void setRight(float right) {
+            Preconditions.checkArgument(left <= right);
+            this.right = right;
+        }
+
+        /**
+         * @return the width (== right - left)
+         */
+        public float getWidth() {
+            return right - left;
+        }
+
+        public float getValueWidth() {
+            return valueWidth;
+        }
+
+        public float getDescriptionWidth() {
+            return descriptionWidth;
+        }
+
+        public List<String> getSplitDescriptionList() {
+            return splitDescriptionList;
+        }
+
+        public Optional<Layout> getCachedLayout() {
+            return cachedLayout;
+        }
+
+        public void setCachedLayout(Layout cachedLayout) {
+            this.cachedLayout = Optional.of(Preconditions.checkNotNull(cachedLayout));
+        }
     }
 
-    public Optional<CandidateWord> getCandidateWord() {
-      return candidateWord;
+    public static class Row {
+        /**
+         * Heuristic parameter for the number of spans in a row.
+         */
+        private static final int TYPICAL_SPANS_PER_ROW = 5;
+        private final List<Span> spans = new ArrayList<Span>(TYPICAL_SPANS_PER_ROW);
+
+        private float top;
+        private float height;
+        private float width;
+
+        public float getTop() {
+            return top;
+        }
+
+        public void setTop(float top) {
+            this.top = top;
+        }
+
+        public float getHeight() {
+            return height;
+        }
+
+        public void setHeight(float height) {
+            this.height = height;
+        }
+
+        public float getWidth() {
+            return width;
+        }
+
+        public void setWidth(float width) {
+            this.width = width;
+        }
+
+        public List<Span> getSpanList() {
+            return Collections.unmodifiableList(spans);
+        }
+
+        public void addSpan(Span span) {
+            spans.add(Preconditions.checkNotNull(span));
+        }
     }
 
-    public float getLeft() {
-      return left;
+    private final List<Row> rowList;
+    private final float contentWidth;
+    private final float contentHeight;
+
+    public CandidateLayout(List<Row> rowList, float contentWidth, float contentHeight) {
+        this.rowList = Preconditions.checkNotNull(rowList);
+        this.contentWidth = contentWidth;
+        this.contentHeight = contentHeight;
     }
 
-    /** @param left the position of the left edge. Must be non negative value. */
-    public void setLeft(float left) {
-      Preconditions.checkArgument(left >= 0);
-      this.left = left;
+    public List<Row> getRowList() {
+        return rowList;
     }
 
-    public float getRight() {
-      return right;
+    public float getContentWidth() {
+        return contentWidth;
     }
 
-    /** @param right the position of the right edge. Must be equal or greater than left. */
-    public void setRight(float right) {
-      Preconditions.checkArgument(left <= right);
-      this.right = right;
+    public float getContentHeight() {
+        return contentHeight;
     }
-
-    /** @return the width (== right - left) */
-    public float getWidth() {
-      return right - left;
-    }
-
-    public float getValueWidth() {
-      return valueWidth;
-    }
-
-    public float getDescriptionWidth() {
-      return descriptionWidth;
-    }
-
-    public List<String> getSplitDescriptionList() {
-      return splitDescriptionList;
-    }
-
-    public Optional<Layout> getCachedLayout() {
-      return cachedLayout;
-    }
-
-    public void setCachedLayout(Layout cachedLayout) {
-      this.cachedLayout = Optional.of(Preconditions.checkNotNull(cachedLayout));
-    }
-  }
-
-  public static class Row {
-    /** Heuristic parameter for the number of spans in a row. */
-    private static final int TYPICAL_SPANS_PER_ROW = 5;
-    private final List<Span> spans = new ArrayList<Span>(TYPICAL_SPANS_PER_ROW);
-
-    private float top;
-    private float height;
-    private float width;
-
-    public float getTop() {
-      return top;
-    }
-
-    public void setTop(float top) {
-      this.top = top;
-    }
-
-    public float getHeight() {
-      return height;
-    }
-
-    public void setHeight(float height) {
-      this.height = height;
-    }
-
-    public float getWidth() {
-      return width;
-    }
-
-    public void setWidth(float width) {
-      this.width = width;
-    }
-
-    public List<Span> getSpanList() {
-      return Collections.unmodifiableList(spans);
-    }
-
-    public void addSpan(Span span) {
-      spans.add(Preconditions.checkNotNull(span));
-    }
-  }
-
-  private final List<Row> rowList;
-  private final float contentWidth;
-  private final float contentHeight;
-
-  public CandidateLayout(List<Row> rowList, float contentWidth, float contentHeight) {
-    this.rowList = Preconditions.checkNotNull(rowList);
-    this.contentWidth = contentWidth;
-    this.contentHeight = contentHeight;
-  }
-
-  public List<Row> getRowList() {
-    return rowList;
-  }
-
-  public float getContentWidth() {
-    return contentWidth;
-  }
-
-  public float getContentHeight() {
-    return contentHeight;
-  }
 }

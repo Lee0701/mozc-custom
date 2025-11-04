@@ -30,30 +30,29 @@
 package io.github.lee0701.mozc.custom.util;
 
 import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * Simple LRU cache implementation based on LinkedHashMap.
  *
  */
 public class LeastRecentlyUsedCacheMap<K, V> extends LinkedHashMap<K, V> {
-  private final int maxEntrySize;
+    private final int maxEntrySize;
 
-  /**
-   * @param maxEntrySize the number of elements this cache should hold.
-   */
-  public LeastRecentlyUsedCacheMap(int maxEntrySize) {
-    // We don't need to resize because if the number of elements is limited.
-    // Thus, set factor to 1.
-    super(maxEntrySize + maxEntrySize / 2, 1f, true);
-    if (maxEntrySize <= 0) {
-      throw new IllegalArgumentException("maxEntrySize should be positive value: " + maxEntrySize);
+    /**
+     * @param maxEntrySize the number of elements this cache should hold.
+     */
+    public LeastRecentlyUsedCacheMap(int maxEntrySize) {
+        // We don't need to resize because if the number of elements is limited.
+        // Thus, set factor to 1.
+        super(maxEntrySize + maxEntrySize / 2, 1f, true);
+        if (maxEntrySize <= 0) {
+            throw new IllegalArgumentException("maxEntrySize should be positive value: " + maxEntrySize);
+        }
+        this.maxEntrySize = maxEntrySize;
     }
-    this.maxEntrySize = maxEntrySize;
-  }
 
-  @Override
-  protected boolean removeEldestEntry(Entry<K, V> eldest) {
-    return size() > maxEntrySize;
-  }
+    @Override
+    protected boolean removeEldestEntry(Entry<K, V> eldest) {
+        return size() > maxEntrySize;
+    }
 }

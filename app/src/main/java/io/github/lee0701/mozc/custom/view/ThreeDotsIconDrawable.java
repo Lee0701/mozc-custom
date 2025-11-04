@@ -45,63 +45,63 @@ import android.graphics.drawable.Drawable;
  */
 public class ThreeDotsIconDrawable extends Drawable {
 
-  private final float bottomOffset;
-  private final float rightOffset;
+    private final float bottomOffset;
+    private final float rightOffset;
 
-  private final float width;
-  private final float span;
+    private final float width;
+    private final float span;
 
-  private static final int DOT_NUMBER = 3;
-  private static final float BLUR_RADIUS = 0.5f;
+    private static final int DOT_NUMBER = 3;
+    private static final float BLUR_RADIUS = 0.5f;
 
-  private final RectF[] dotRects = new RectF[DOT_NUMBER];
+    private final RectF[] dotRects = new RectF[DOT_NUMBER];
 
-  private final Paint basePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint basePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
-  public ThreeDotsIconDrawable(float bottomOffset, float rightOffset,
-                               int color, float width, float span) {
-    this.bottomOffset = bottomOffset;
-    this.rightOffset = rightOffset;
-    this.width = width;
-    this.span = span;
+    public ThreeDotsIconDrawable(float bottomOffset, float rightOffset,
+                                 int color, float width, float span) {
+        this.bottomOffset = bottomOffset;
+        this.rightOffset = rightOffset;
+        this.width = width;
+        this.span = span;
 
-    basePaint.setColor(color);
-    basePaint.setStyle(Style.FILL);
-    basePaint.setMaskFilter(new BlurMaskFilter(BLUR_RADIUS, Blur.NORMAL));
+        basePaint.setColor(color);
+        basePaint.setStyle(Style.FILL);
+        basePaint.setMaskFilter(new BlurMaskFilter(BLUR_RADIUS, Blur.NORMAL));
 
-    for (int i = 0; i < DOT_NUMBER; ++i) {
-      dotRects[i] = new RectF();
+        for (int i = 0; i < DOT_NUMBER; ++i) {
+            dotRects[i] = new RectF();
+        }
     }
-  }
 
-  @Override
-  public void draw(Canvas canvas) {
-    for (RectF rect : dotRects) {
-      canvas.drawRect(rect, basePaint);
+    @Override
+    public void draw(Canvas canvas) {
+        for (RectF rect : dotRects) {
+            canvas.drawRect(rect, basePaint);
+        }
     }
-  }
 
-  @Override
-  protected void onBoundsChange(Rect bound) {
-    super.onBoundsChange(bound);
+    @Override
+    protected void onBoundsChange(Rect bound) {
+        super.onBoundsChange(bound);
 
-    for (int i = 0; i < dotRects.length; ++i) {
-      float right = bound.right - (width + span) * i - rightOffset;
-      float bottom = bound.bottom - bottomOffset;
-      dotRects[i].set(right - width, bottom - width, right, bottom);
+        for (int i = 0; i < dotRects.length; ++i) {
+            float right = bound.right - (width + span) * i - rightOffset;
+            float bottom = bound.bottom - bottomOffset;
+            dotRects[i].set(right - width, bottom - width, right, bottom);
+        }
     }
-  }
 
-  @Override
-  public int getOpacity() {
-    return PixelFormat.TRANSLUCENT;
-  }
+    @Override
+    public int getOpacity() {
+        return PixelFormat.TRANSLUCENT;
+    }
 
-  @Override
-  public void setAlpha(int alpha) {
-  }
+    @Override
+    public void setAlpha(int alpha) {
+    }
 
-  @Override
-  public void setColorFilter(ColorFilter cf) {
-  }
+    @Override
+    public void setColorFilter(ColorFilter cf) {
+    }
 }

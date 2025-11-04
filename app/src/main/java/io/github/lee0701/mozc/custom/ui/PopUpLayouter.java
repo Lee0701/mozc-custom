@@ -29,15 +29,16 @@
 
 package io.github.lee0701.mozc.custom.ui;
 
-import io.github.lee0701.mozc.custom.MozcUtil;
-import com.google.common.base.Preconditions;
-
 import android.graphics.Rect;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.FrameLayout;
+
+import com.google.common.base.Preconditions;
+
+import io.github.lee0701.mozc.custom.MozcUtil;
 
 /**
  * A pop-up view layouter.
@@ -49,72 +50,72 @@ import android.widget.FrameLayout;
  */
 public class PopUpLayouter<T extends View> {
 
-  private final View parent;
-  private final T contentView;
+    private final View parent;
+    private final T contentView;
 
-  private boolean isRegistered = false;
+    private boolean isRegistered = false;
 
-  public PopUpLayouter(View parent, T popUpView) {
-    this.parent = Preconditions.checkNotNull(parent);
-    this.contentView = Preconditions.checkNotNull(popUpView);
-  }
-
-  private void registerToViewHierarchyIfNecessary() {
-    if (isRegistered) {
-      return;
+    public PopUpLayouter(View parent, T popUpView) {
+        this.parent = Preconditions.checkNotNull(parent);
+        this.contentView = Preconditions.checkNotNull(popUpView);
     }
 
-    View rootView = parent.getRootView();
-    if (rootView != null) {
-      FrameLayout screenContent =
-          FrameLayout.class.cast(rootView.findViewById(android.R.id.content));
-      if (screenContent != null) {
-        screenContent.addView(
-            contentView, new FrameLayout.LayoutParams(0, 0, Gravity.LEFT | Gravity.TOP));
-        isRegistered = true;
-      }
-    }
-  }
-
-  public T getContentView() {
-    return contentView;
-  }
-
-  public void setBounds(Rect rect) {
-    Preconditions.checkNotNull(rect);
-    setBounds(rect.left, rect.top, rect.right, rect.bottom);
-  }
-
-  public void setBounds(int left, int top, int right, int bottom) {
-    registerToViewHierarchyIfNecessary();
-
-    int width = right - left;
-    int height = bottom - top;
-
-    ViewGroup.LayoutParams layoutParams = contentView.getLayoutParams();
-    if (layoutParams != null) {
-      layoutParams.width = width;
-      layoutParams.height = height;
-      if (MarginLayoutParams.class.isInstance(layoutParams)) {
-        int x = left;
-        int y = top;
-
-        int[] location = new int[2];
-        parent.getLocationInWindow(location);
-        x += location[0];
-        y += location[1];
-
-        MarginLayoutParams marginLayoutParams = MarginLayoutParams.class.cast(layoutParams);
-        // Clip XY.
-        View rootView = View.class.cast(contentView.getParent());
-        if (rootView != null) {
-          x = MozcUtil.clamp(x, 0, rootView.getWidth() - width);
-          y = MozcUtil.clamp(y, 0, rootView.getHeight() - height);
+    private void registerToViewHierarchyIfNecessary() {
+        if (isRegistered) {
+            return;
         }
 
-        marginLayoutParams.setMargins(x, y, 0, 0);
-      }
-      contentView.setLayoutParams(layoutParams);
+        View rootView = parent.getRootView();
+        if (rootView != null) {
+            FrameLayout screenContent =
+                    (FrameLayout) rootView.findViewById(android.R.id.content);
+            if (screenContent != null) {
+                screenContent.addView(
+                        contentView, new FrameLayout.LayoutParams(0, 0, Gravity.LEFT | Gravity.TOP));
+                isRegistered = true;
+            }
+        }
     }
-  }
+
+    public T getContentView() {
+        return contentView;
+    }
+
+    public void setBounds(Rect rect) {
+        Preconditions.checkNotNull(rect);
+        setBounds(rect.left, rect.top, rect.right, rect.bottom);
+    }
+
+    public void setBounds(int left, int top, int right, int bottom) {
+        registerToViewHierarchyIfNecessary();
+
+        int width = right - left;
+        int height = bottom - top;
+
+        ViewGroup.LayoutParams layoutParams = contentView.getLayoutParams();
+        if (layoutParams != null) {
+            layoutParams.width = width;
+            layoutParams.height = height;
+            if (layoutParams instanceof MarginLayoutParams) {
+                int x = left;
+                int y = top;
+
+                int[] location = new int[2];
+                parent.getLocationInWindow(location);
+                x += location[0];
+                y += location[1];
+
+                MarginLayoutParams marginLayoutParams = (MarginLayoutParams) layoutParams;
+                // Clip XY.
+                View rootView = (View) contentView.getParent();
+                if (rootView != null) {
+                    x = MozcUtil.clamp(x, 0, rootView.getWidth() - width);
+                    y = MozcUtil.clamp(y, 0, rootView.getHeight() - height);
+                }
+
+                marginLayoutParams.setMargins(x, y, 0, 0);
+            }
+            contentView.setLayoutParams(layoutParams);
+        }
+    }
 }
