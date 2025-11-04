@@ -31,8 +31,8 @@ package io.github.lee0701.mozc.custom;
 
 import io.github.lee0701.mozc.custom.MozcView.InputFrameFoldButtonClickListener;
 import io.github.lee0701.mozc.custom.keyboard.BackgroundDrawableFactory.DrawableType;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidates.CandidateList;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidates.CandidateWord;
+import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidateWindow.CandidateList;
+import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidateWindow.CandidateWord;
 import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Command;
 import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Input;
 import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Input.CommandType;
@@ -306,12 +306,12 @@ public class CandidateView extends InOutAnimatedFrameLayout implements MemoryMan
 
     Input input = outCommand.getInput();
     CandidateList allCandidateWords = outCommand.getOutput().getAllCandidateWords();
-    if (input.getType() == CommandType.SEND_COMMAND
-        && input.getCommand().getType() == SessionCommand.CommandType.EXPAND_SUGGESTION) {
-      getConversionCandidateWordView().updateForExpandSuggestion(allCandidateWords);
-    } else {
+//    if (input.getType() == CommandType.SEND_COMMAND
+//        && input.getCommand().getType() == SessionCommand.CommandType.EXPAND_SUGGESTION) {
+//      getConversionCandidateWordView().updateForExpandSuggestion(allCandidateWords);
+//    } else {
       getConversionCandidateWordView().update(allCandidateWords);
-    }
+//    }
   }
 
   /**

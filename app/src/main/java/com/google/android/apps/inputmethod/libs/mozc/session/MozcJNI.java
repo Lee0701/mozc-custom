@@ -27,7 +27,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.session;
+package com.google.android.apps.inputmethod.libs.mozc.session;
 
 import io.github.lee0701.mozc.custom.MozcLog;
 import com.google.common.base.Preconditions;
@@ -36,7 +36,7 @@ import com.google.common.base.Preconditions;
  * The wrapper for JNI Mozc server.
  *
  */
-class MozcJNI {
+public class MozcJNI {
   /**
    * Load the mozc native library. This method must be invoked before {@code evalCommand}.
    */
@@ -49,7 +49,7 @@ class MozcJNI {
    * @param dataFilePath optional path to data file (e.g., mozc.data), or {@code null}
    * @param expectedVersion expected version name of .so
    */
-  static void load(
+  public static void load(
       String userProfileDirectoryPath, String dataFilePath, String expectedVersion) {
     Preconditions.checkNotNull(userProfileDirectoryPath);
     Preconditions.checkNotNull(expectedVersion);
@@ -69,13 +69,16 @@ class MozcJNI {
         MozcLog.e("loadLibrary failed", e);
         throw new RuntimeException(e);
       }
-      String nativeVersion = getVersion();
-      if (!nativeVersion.equals(expectedVersion)) {
-        StringBuilder message = new StringBuilder("Version conflicts;");
-        message.append(" Client:").append(expectedVersion);
-        message.append(" Server:").append(nativeVersion);
-        throw new UnsatisfiedLinkError(message.toString());
-      }
+      // Initialize functions from the native side.
+      initialize();
+      // Skip version check.
+//      String nativeVersion = getVersion();
+//      if (!nativeVersion.equals(expectedVersion)) {
+//        StringBuilder message = new StringBuilder("Version conflicts;");
+//        message.append(" Client:").append(expectedVersion);
+//        message.append(" Server:").append(nativeVersion);
+//        throw new UnsatisfiedLinkError(message.toString());
+//      }
       if (!onPostLoad(userProfileDirectoryPath, dataFilePath)) {
           MozcLog.e("onPostLoad fails");
           return;
@@ -85,6 +88,8 @@ class MozcJNI {
     }
   }
 
+    private static native void initialize();
+
   /**
    * Sends Command message to Mozc server and get a result.
    *
@@ -93,7 +98,7 @@ class MozcJNI {
    * @param command blob of Command message.
    * @return blob of Command message.
    */
-  static synchronized native byte[] evalCommand(byte[] command);
+  public static synchronized native byte[] evalCommand(byte[] command);
 
   /**
    * This method initializes the internal state of mozc server, especially dictionary data
@@ -107,7 +112,7 @@ class MozcJNI {
   /**
    * @return Version string of shared object
    */
-  private static native String getVersion();
+//  private static native String getVersion();
 
   /**
    * @return Data version string currently loaded in native layer. Empty if initialization has

@@ -30,7 +30,7 @@
 package io.github.lee0701.mozc.custom.emoji;
 
 import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Request;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Request.EmojiCarrierType;
+//import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Request.EmojiCarrierType;
 import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Request.RewriterCapability;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -60,15 +60,15 @@ public class EmojiUtil {
   /**
    * Note that if the key is {@link EmojiProviderType#NONE}, {@code null} is returned.
    */
-  private static final Map<EmojiProviderType, EmojiCarrierType> CARRIER_EMOJI_PROVIDER_TYPE_MAP;
-  static {
-    EnumMap<EmojiProviderType, EmojiCarrierType> map =
-        new EnumMap<EmojiProviderType, EmojiCarrierType>(EmojiProviderType.class);
-    map.put(EmojiProviderType.DOCOMO, EmojiCarrierType.DOCOMO_EMOJI);
-    map.put(EmojiProviderType.SOFTBANK, EmojiCarrierType.SOFTBANK_EMOJI);
-    map.put(EmojiProviderType.KDDI, EmojiCarrierType.KDDI_EMOJI);
-    CARRIER_EMOJI_PROVIDER_TYPE_MAP = Collections.unmodifiableMap(map);
-  }
+//  private static final Map<EmojiProviderType, EmojiCarrierType> CARRIER_EMOJI_PROVIDER_TYPE_MAP;
+//  static {
+//    EnumMap<EmojiProviderType, EmojiCarrierType> map =
+//        new EnumMap<EmojiProviderType, EmojiCarrierType>(EmojiProviderType.class);
+//    map.put(EmojiProviderType.DOCOMO, EmojiCarrierType.DOCOMO_EMOJI);
+//    map.put(EmojiProviderType.SOFTBANK, EmojiCarrierType.SOFTBANK_EMOJI);
+//    map.put(EmojiProviderType.KDDI, EmojiCarrierType.KDDI_EMOJI);
+//    CARRIER_EMOJI_PROVIDER_TYPE_MAP = Collections.unmodifiableMap(map);
+//  }
 
   private EmojiUtil() {}
 
@@ -84,7 +84,8 @@ public class EmojiUtil {
 
   /** @return {@code true} if the given {@code type} is carrier emoji provider type. */
   public static boolean isCarrierEmojiProviderType(EmojiProviderType type) {
-    return CARRIER_EMOJI_PROVIDER_TYPE_MAP.containsKey(Preconditions.checkNotNull(type));
+//    return CARRIER_EMOJI_PROVIDER_TYPE_MAP.containsKey(Preconditions.checkNotNull(type));
+      return false;
   }
 
   /** @return {@code true} if carrier emoji is allowed on the text edit. */
@@ -121,18 +122,18 @@ public class EmojiUtil {
 
     int availableEmojiCarrier = 0;
     if (isUnicodeEmojiAvailable(sdkInt)) {
-      availableEmojiCarrier |= EmojiCarrierType.UNICODE_EMOJI.getNumber();
+//      availableEmojiCarrier |= EmojiCarrierType.UNICODE_EMOJI.getNumber();
     }
 
     // NOTE: If emojiCarrierType is NONE, availableEmojiCarrier is not updated here.
-    EmojiCarrierType emojiCarrierType =
-        CARRIER_EMOJI_PROVIDER_TYPE_MAP.get(emojiProviderType);
-    if (emojiCarrierType != null) {
-      availableEmojiCarrier |= emojiCarrierType.getNumber();
-    }
+//    EmojiCarrierType emojiCarrierType =
+//        CARRIER_EMOJI_PROVIDER_TYPE_MAP.get(emojiProviderType);
+//    if (emojiCarrierType != null) {
+//      availableEmojiCarrier |= emojiCarrierType.getNumber();
+//    }
 
     return Request.newBuilder()
-        .setAvailableEmojiCarrier(availableEmojiCarrier)
+//        .setAvailableEmojiCarrier(availableEmojiCarrier)
         .setEmojiRewriterCapability(RewriterCapability.ALL.getNumber())
         .build();
   }
