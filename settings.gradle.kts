@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "mozc-android"
+rootProject.name = "mozc-custom"
 include(":app")

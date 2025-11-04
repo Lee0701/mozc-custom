@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "org.mozc.android.inputmethod.japanese"
+    namespace = "io.github.lee0701.mozc.custom"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "org.mozc.android.inputmethod.japanese"
+        applicationId = "io.github.lee0701.mozc.custom"
         minSdk = 21
         targetSdk = 36
         versionCode = 6028152

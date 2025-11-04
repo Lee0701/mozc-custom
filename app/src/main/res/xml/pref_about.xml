@@ -44,8 +44,8 @@
         android:title="@string/pref_about_terms_of_service_title">
       <intent
           android:action="android.intent.action.MAIN"
-          android:targetPackage="org.mozc.android.inputmethod.japanese"
-          android:targetClass="org.mozc.android.inputmethod.japanese.preference.MiniBrowserActivity"
+          android:targetPackage="io.github.lee0701.mozc.custom"
+          android:targetClass="io.github.lee0701.mozc.custom.preference.MiniBrowserActivity"
           android:data="@string/pref_about_terms_of_service_url" />
     </Preference>
 
@@ -56,8 +56,8 @@
         android:title="@string/pref_about_privacy_policy_title">
       <intent
           android:action="android.intent.action.MAIN"
-          android:targetPackage="org.mozc.android.inputmethod.japanese"
-          android:targetClass="org.mozc.android.inputmethod.japanese.preference.MiniBrowserActivity"
+          android:targetPackage="io.github.lee0701.mozc.custom"
+          android:targetClass="io.github.lee0701.mozc.custom.preference.MiniBrowserActivity"
           android:data="@string/pref_about_privacy_policy_url" />
     </Preference>
 
@@ -68,8 +68,8 @@
         android:title="@string/pref_about_oss_credits_title">
       <intent
           android:action="android.intent.action.MAIN"
-          android:targetPackage="org.mozc.android.inputmethod.japanese"
-          android:targetClass="org.mozc.android.inputmethod.japanese.preference.MiniBrowserActivity"
+          android:targetPackage="io.github.lee0701.mozc.custom"
+          android:targetClass="io.github.lee0701.mozc.custom.preference.MiniBrowserActivity"
           android:data="@string/pref_oss_credits_url" />
     </Preference>
 
@@ -80,4 +80,3 @@
         android:title="@string/pref_launcher_icon_visibility_title" />
   </PreferenceCategory>
 </PreferenceScreen>
-
