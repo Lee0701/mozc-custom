@@ -29,12 +29,12 @@
 
 package org.mozc.android.inputmethod.japanese.session;
 
-import org.mozc.android.inputmethod.japanese.KeycodeConverter.KeyEventInterface;
-import org.mozc.android.inputmethod.japanese.MozcLog;
-import org.mozc.android.inputmethod.japanese.MozcUtil;
-import org.mozc.android.inputmethod.japanese.R;
-import org.mozc.android.inputmethod.japanese.ViewManagerInterface.LayoutAdjustment;
-import org.mozc.android.inputmethod.japanese.preference.ClientSidePreference;
+import io.github.lee0701.mozc.custom.KeycodeConverter.KeyEventInterface;
+import io.github.lee0701.mozc.custom.MozcLog;
+import io.github.lee0701.mozc.custom.MozcUtil;
+import io.github.lee0701.mozc.custom.R;
+import io.github.lee0701.mozc.custom.ViewManagerInterface.LayoutAdjustment;
+import io.github.lee0701.mozc.custom.preference.ClientSidePreference;
 import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands;
 import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Capability;
 import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Capability.TextDeletionCapabilityType;

@@ -29,7 +29,7 @@
 
 package org.mozc.android.inputmethod.japanese.session;
 
-import org.mozc.android.inputmethod.japanese.MozcLog;
+import io.github.lee0701.mozc.custom.MozcLog;
 import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Command;
 import com.google.common.base.Preconditions;
 
